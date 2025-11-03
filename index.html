@@ -811,6 +811,22 @@
             }
         }
 
+        // Миграция данных: добавление Goal ID для целей без ID
+        function migrateGoalIds() {
+            let migrated = 0;
+            goalsData.forEach(goal => {
+                if (!goal.id) {
+                    goal.id = generateUUID();
+                    migrated++;
+                }
+            });
+
+            if (migrated > 0) {
+                localStorage.setItem('goalsData', JSON.stringify(goalsData));
+                console.log(`✅ Миграция: добавлено ID для ${migrated} целей`);
+            }
+        }
+
         // Валидация дат цели
         function validateGoalDates(startDate, endDate) {
             const errors = [];
@@ -1032,6 +1048,7 @@
 
             // Запускаем миграции данных (если нужно)
             migrateAthleteFields();
+            migrateGoalIds();
             migrateGoalUpdatedAt();
 
             calculateAllTimeRecords();
@@ -1355,10 +1372,12 @@
             if (count > 0) {
                 const athleteChanges = pendingChanges.filter(c => c.type === 'athlete').length;
                 const goalChanges = pendingChanges.filter(c => c.type === 'goal').length;
+                const goalEditChanges = pendingChanges.filter(c => c.type === 'goal_edit').length;
 
                 let text = [];
                 if (athleteChanges > 0) text.push(`${athleteChanges} показ.`);
                 if (goalChanges > 0) text.push(`${goalChanges} цел.`);
+                if (goalEditChanges > 0) text.push(`${goalEditChanges} ред.`);
 
                 btn.innerHTML = `<span>🔄</span><span>Синхронизировать (${text.join(', ')})</span>`;
                 btn.style.background = '#fbbf24';
@@ -1485,7 +1504,7 @@
 
                 if (goalsResult.success && goalsResult.data.goals) {
                     goalsData = goalsResult.data.goals.map(g => ({
-                        id: g.id,
+                        id: g.id || generateUUID(), // Генерируем UUID если нет ID
                         studentId: g.studentId,
                         studentName: g.studentName,
                         exerciseId: g.exerciseId,
