@@ -395,6 +395,56 @@
             background: #3a8de6;
         }
 
+        .btn-secondary {
+            background: #2a2d3a;
+            color: #8b8f9f;
+            border: 1px solid #3a3d4a;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.98);
+            background: #1a1d29;
+        }
+
+        .date-input {
+            height: 48px;
+            background: #2a2d3a;
+            color: #ffffff;
+            border: 1px solid #3a3d4a;
+            font-size: 16px;
+        }
+
+        .date-input::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+        }
+
+        .validation-errors {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            color: #dc2626;
+            font-size: 14px;
+            display: none;
+        }
+
+        .validation-errors.show {
+            display: block;
+        }
+
+        .validation-errors ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -618,6 +668,36 @@
         </div>
     </div>
 
+    <!-- Модальное окно: Редактировать цель -->
+    <div class="modal" id="goalEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Редактировать цель</div>
+                <button class="close-btn" onclick="closeGoalEditModal()">&times;</button>
+            </div>
+            <form id="goalEditForm" onsubmit="saveGoalDateEdit(event)">
+                <input type="hidden" id="editGoalId">
+
+                <div class="form-group">
+                    <label class="form-label">Дата начала</label>
+                    <input type="date" class="form-input date-input" id="editGoalStartDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Дата окончания</label>
+                    <input type="date" class="form-input date-input" id="editGoalEndDate" required>
+                </div>
+
+                <div class="validation-errors" id="goalEditErrors"></div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeGoalEditModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         console.log('✅ JavaScript загружен');
 
@@ -669,6 +749,262 @@
             });
         }
 
+        // UUID генерация (с полифилом для старых браузеров)
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            // Полифил для Safari iOS <14.5
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Миграция данных: добавление Goal.updatedAt
+        function migrateGoalUpdatedAt() {
+            let migrated = 0;
+            goalsData.forEach(goal => {
+                if (!goal.updatedAt) {
+                    // Используем createdAt если есть, иначе текущее время
+                    goal.updatedAt = goal.createdAt || new Date().toISOString();
+                    migrated++;
+                }
+            });
+            if (migrated > 0) {
+                localStorage.setItem('goalsData', JSON.stringify(goalsData));
+                console.log(`✅ Миграция: добавлено updatedAt для ${migrated} целей`);
+            }
+        }
+
+        // Миграция данных: добавление Athlete ID/status/order
+        function migrateAthleteFields() {
+            let migrated = 0;
+            athletesData.forEach((athlete, index) => {
+                let changed = false;
+
+                // Добавляем ID если отсутствует
+                if (!athlete.id) {
+                    athlete.id = generateUUID();
+                    changed = true;
+                }
+
+                // Добавляем status если отсутствует
+                if (!athlete.status) {
+                    athlete.status = 'active';
+                    changed = true;
+                }
+
+                // Добавляем order если отсутствует (используем текущий индекс)
+                if (typeof athlete.order !== 'number') {
+                    athlete.order = index;
+                    changed = true;
+                }
+
+                if (changed) migrated++;
+            });
+
+            if (migrated > 0) {
+                localStorage.setItem('athletesData', JSON.stringify(athletesData));
+                console.log(`✅ Миграция: обновлено полей для ${migrated} спортсменов`);
+            }
+        }
+
+        // Валидация дат цели
+        function validateGoalDates(startDate, endDate) {
+            const errors = [];
+
+            if (!startDate) {
+                errors.push('Дата начала обязательна');
+            }
+            if (!endDate) {
+                errors.push('Дата окончания обязательна');
+            }
+
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                if (end < start) {
+                    errors.push('Дата окончания должна быть позже даты начала');
+                }
+
+                // Проверка: не более 1 года
+                const oneYearLater = new Date(start);
+                oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+                if (end > oneYearLater) {
+                    errors.push('Длительность цели не может превышать 1 год');
+                }
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors
+            };
+        }
+
+        // Валидация описания цели
+        function validateDescription(description) {
+            const errors = [];
+
+            if (!description || description.trim().length === 0) {
+                errors.push('Описание обязательно');
+            } else if (description.trim().length < 3) {
+                errors.push('Описание должно содержать минимум 3 символа');
+            } else if (description.length > 200) {
+                errors.push('Описание не может превышать 200 символов');
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors
+            };
+        }
+
+        // Валидация целевого значения
+        function validateTargetValue(value) {
+            const errors = [];
+
+            if (!value || isNaN(value)) {
+                errors.push('Целевое значение должно быть числом');
+            } else {
+                const numValue = parseInt(value, 10);
+                if (numValue < 1) {
+                    errors.push('Целевое значение должно быть не менее 1');
+                }
+                if (numValue > 1000) {
+                    errors.push('Целевое значение не может превышать 1000');
+                }
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors
+            };
+        }
+
+        // Полная валидация цели
+        function validateGoal(goal) {
+            const allErrors = [];
+
+            // Валидация дат
+            const dateValidation = validateGoalDates(goal.startDate, goal.endDate);
+            if (!dateValidation.valid) {
+                allErrors.push(...dateValidation.errors);
+            }
+
+            // Валидация описания (если указано)
+            if (goal.description !== undefined) {
+                const descValidation = validateDescription(goal.description);
+                if (!descValidation.valid) {
+                    allErrors.push(...descValidation.errors);
+                }
+            }
+
+            // Валидация целевого значения (если указано)
+            if (goal.targetValue !== undefined) {
+                const targetValidation = validateTargetValue(goal.targetValue);
+                if (!targetValidation.valid) {
+                    allErrors.push(...targetValidation.errors);
+                }
+            }
+
+            return {
+                valid: allErrors.length === 0,
+                errors: allErrors
+            };
+        }
+
+        // Открыть модал редактирования цели
+        function openGoalEditModal(goalId) {
+            const goal = goalsData.find(g => g.id === goalId);
+            if (!goal) {
+                console.error('❌ Цель не найдена:', goalId);
+                return;
+            }
+
+            // Заполняем форму текущими значениями
+            document.getElementById('editGoalId').value = goal.id;
+            document.getElementById('editGoalStartDate').value = goal.startDate || goal.setDate || '';
+            document.getElementById('editGoalEndDate').value = goal.endDate || goal.completionDate || '';
+
+            // Скрываем ошибки
+            const errorsDiv = document.getElementById('goalEditErrors');
+            errorsDiv.classList.remove('show');
+            errorsDiv.innerHTML = '';
+
+            // Показываем модал
+            document.getElementById('goalEditModal').classList.add('show');
+            console.log('✏️ Открыт модал редактирования цели:', goal.id);
+        }
+
+        // Закрыть модал редактирования цели
+        function closeGoalEditModal() {
+            document.getElementById('goalEditModal').classList.remove('show');
+            document.getElementById('goalEditForm').reset();
+            console.log('❌ Закрыт модал редактирования цели');
+        }
+
+        // Сохранить изменения дат цели
+        function saveGoalDateEdit(event) {
+            event.preventDefault();
+
+            const goalId = document.getElementById('editGoalId').value;
+            const startDate = document.getElementById('editGoalStartDate').value;
+            const endDate = document.getElementById('editGoalEndDate').value;
+
+            // Валидация дат
+            const validation = validateGoalDates(startDate, endDate);
+            if (!validation.valid) {
+                // Показываем ошибки
+                const errorsDiv = document.getElementById('goalEditErrors');
+                errorsDiv.innerHTML = '<ul>' + validation.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+                errorsDiv.classList.add('show');
+                return;
+            }
+
+            // Находим цель
+            const goal = goalsData.find(g => g.id === goalId);
+            if (!goal) {
+                alert('❌ Ошибка: цель не найдена');
+                return;
+            }
+
+            // Обновляем цель
+            goal.startDate = startDate;
+            goal.setDate = startDate; // Поддержка обоих полей
+            goal.endDate = endDate;
+            goal.completionDate = endDate; // Поддержка обоих полей
+            goal.updatedAt = new Date().toISOString();
+
+            // Сохраняем в localStorage
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+            console.log('💾 Цель обновлена в localStorage:', goal.id);
+
+            // Добавляем в очередь синхронизации
+            pendingChanges.push({
+                type: 'goal_edit',
+                goalId: goal.id,
+                changes: {
+                    startDate: goal.startDate,
+                    endDate: goal.endDate,
+                    updatedAt: goal.updatedAt
+                },
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+            console.log('📤 Изменение добавлено в очередь синхронизации');
+
+            // Обновляем UI
+            updatePendingIndicator();
+            renderAthletes(); // Перерисовываем список (включает цели)
+
+            // Закрываем модал
+            closeGoalEditModal();
+            console.log('✅ Изменения дат цели сохранены');
+        }
+
         // Отображение индикатора сезона
         function updateSeasonIndicator() {
             const indicator = document.getElementById('seasonIndicator');
@@ -693,6 +1029,11 @@
             updateSeasonIndicator();
 
             loadFromLocalStorage();
+
+            // Запускаем миграции данных (если нужно)
+            migrateAthleteFields();
+            migrateGoalUpdatedAt();
+
             calculateAllTimeRecords();
             renderAthletes();
             updatePendingIndicator();
@@ -908,12 +1249,12 @@
                             const isCompleted = goal.completionDate && goal.completionDate !== '';
                             const hasPending = pendingChanges.some(c => c.type === 'goal' && c.goalId == goal.id);
                             return `
-                                <div class="goal-card ${isCompleted ? 'completed' : ''}" style="position: relative;">
+                                <div class="goal-card ${isCompleted ? 'completed' : ''}" style="position: relative; cursor: pointer;" onclick="openGoalEditModal('${goal.id}'); event.stopPropagation();">
                                     ${hasPending ? '<span class="pending-badge" style="position: absolute; top: 10px; right: 10px;">⏳</span>' : ''}
-                                    <div class="goal-title">${goal.exerciseName}</div>
+                                    <div class="goal-title">${goal.exerciseName} ✏️</div>
                                     <div class="goal-date">
-                                        📅 ${formatDate(goal.setDate)}
-                                        ${isCompleted ? ` • ✅ ${formatDate(goal.completionDate)}` : ' • ⏳ В процессе'}
+                                        📅 ${formatDate(goal.setDate || goal.startDate)}
+                                        ${isCompleted ? ` • ✅ ${formatDate(goal.completionDate || goal.endDate)}` : ' • ⏳ В процессе'}
                                     </div>
                                     ${goal.notes ? `<div style="font-size: 12px; color: #8b8f9f; margin-top: 5px;">💬 ${goal.notes}</div>` : ''}
                                     <button class="action-btn" onclick="toggleGoalComplete('${goal.id}', ${!isCompleted}); event.stopPropagation();" style="margin-top: 8px;">
@@ -1168,12 +1509,38 @@
             }
         }
 
+        // Объединение множественных изменений одной цели в одно (последнее)
+        function coalescePendingChanges() {
+            const goalEdits = new Map(); // goalId -> последнее изменение
+            const otherChanges = [];
+
+            pendingChanges.forEach(change => {
+                if (change.type === 'goal_edit') {
+                    // Сохраняем только последнее изменение для каждой цели
+                    const existingEdit = goalEdits.get(change.goalId);
+                    if (!existingEdit || new Date(change.timestamp) > new Date(existingEdit.timestamp)) {
+                        goalEdits.set(change.goalId, change);
+                    }
+                } else {
+                    // Остальные типы изменений не объединяем
+                    otherChanges.push(change);
+                }
+            });
+
+            // Объединяем результаты: сначала goal_edit (объединенные), потом остальные
+            return [...Array.from(goalEdits.values()), ...otherChanges];
+        }
+
         // Синхронизация несохраненных изменений
         async function syncPendingChanges() {
             const errors = [];
             const successfulChanges = [];
 
-            for (const change of pendingChanges) {
+            // Оптимизация: объединяем множественные изменения одной цели
+            const coalescedChanges = coalescePendingChanges();
+            console.log(`📊 Оптимизация очереди: ${pendingChanges.length} → ${coalescedChanges.length} изменений`);
+
+            for (const change of coalescedChanges) {
                 try {
                     if (change.type === 'athlete') {
                         console.log('📤 Синхронизация показателей:', change.athleteName);
