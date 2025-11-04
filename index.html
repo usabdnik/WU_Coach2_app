@@ -406,6 +406,61 @@
             background: #1a1d29;
         }
 
+        /* Sync Button States (Feature 003 - US2) */
+        .sync-button {
+            background: #2a2d3a;
+            color: #ffffff;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            cursor: pointer;
+        }
+
+        .sync-button.pending {
+            background: #fbbf24;
+            color: #0f1117;
+        }
+
+        .sync-button.syncing {
+            background: #4c9eff;
+            color: #ffffff;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .sync-button.success {
+            background: #4ade80;
+            color: #0f1117;
+        }
+
+        .sync-button.error {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .sync-button.syncing .sync-icon {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        .sync-button:active:not(.syncing) {
+            transform: scale(0.98);
+        }
+
+        /* Add Goal Button (Feature 003 - US3) */
+        .add-goal-button:hover {
+            background: #3a3d4a;
+            color: #ffffff;
+            border-color: #4c9eff;
+        }
+
+        .add-goal-button:active {
+            transform: scale(0.98);
+        }
+
         .date-input {
             height: 48px;
             background: #2a2d3a;
@@ -578,7 +633,7 @@
     <div class="header">
         <div class="header-top">
             <div class="app-title">Gym Coach</div>
-            <button class="sync-btn" id="syncBtn" disabled>
+            <button class="sync-btn sync-button" id="syncBtn" disabled>
                 <span>⚡</span>
                 <span id="syncBtnText">Синхронизировать</span>
             </button>
@@ -698,10 +753,60 @@
         </div>
     </div>
 
+    <!-- Модальное окно: Создать цель (Feature 003 - US3) -->
+    <div class="modal" id="goalCreateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Добавить цель</div>
+                <button class="close-btn" onclick="closeGoalCreateModal()">&times;</button>
+            </div>
+            <form id="goalCreateForm" onsubmit="handleGoalCreate(event)">
+                <input type="hidden" id="createGoalStudentId">
+
+                <div class="form-group">
+                    <label class="form-label">Спортсмен</label>
+                    <input type="text" class="form-input" id="createGoalStudentName" disabled style="background: #1a1d29; color: #8b8f9f;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Упражнение</label>
+                    <select class="form-select" id="createGoalExercise" required>
+                        <option value="">Выберите упражнение</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Дата начала</label>
+                    <input type="date" class="form-input date-input" id="createGoalStartDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Дата окончания</label>
+                    <input type="date" class="form-input date-input" id="createGoalEndDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание (необязательно)</label>
+                    <textarea class="form-textarea" id="createGoalDescription" placeholder="Например: 12 подтягиваний к концу месяца" maxlength="200" style="height: 80px; resize: vertical;"></textarea>
+                    <div style="font-size: 12px; color: #6b6f82; margin-top: 5px;">
+                        <span id="createGoalDescLength">0</span>/200 символов
+                    </div>
+                </div>
+
+                <div class="validation-errors" id="goalCreateErrors"></div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" id="createGoalSubmit">Создать цель</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeGoalCreateModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         console.log('✅ JavaScript загружен');
 
-        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbym0TPQNfLGjyXaBhonCqs86xHzPBAQxXK7Dw6EpYBt5h6v-1XaMl7HrhMOymvlQjDR/exec';
+        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec';
         const MONTHS = ['Сент', 'Окт', 'Нояб', 'Дек', 'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг'];
 
         let athletesData = [];
@@ -814,10 +919,35 @@
         // Миграция данных: добавление Goal ID для целей без ID
         function migrateGoalIds() {
             let migrated = 0;
-            goalsData.forEach(goal => {
+            let warnings = [];
+
+            goalsData.forEach((goal, index) => {
+                // Add UUID if missing
                 if (!goal.id) {
                     goal.id = generateUUID();
                     migrated++;
+                    console.log(`🔧 Миграция: добавлен ID для цели ${index}: ${goal.exerciseName} (${goal.studentName})`);
+                }
+
+                // Warn about missing critical fields
+                if (!goal.exerciseName) {
+                    warnings.push(`⚠️ Цель ${goal.id}: отсутствует exerciseName`);
+                }
+                if (!goal.studentName) {
+                    warnings.push(`⚠️ Цель ${goal.id}: отсутствует studentName`);
+                }
+
+                // Auto-fix dual date fields for backward compatibility
+                if (goal.startDate && !goal.setDate) {
+                    goal.setDate = goal.startDate;
+                } else if (goal.setDate && !goal.startDate) {
+                    goal.startDate = goal.setDate;
+                }
+
+                if (goal.endDate && !goal.completionDate) {
+                    goal.completionDate = goal.endDate;
+                } else if (goal.completionDate && !goal.endDate) {
+                    goal.endDate = goal.completionDate;
                 }
             });
 
@@ -825,6 +955,12 @@
                 localStorage.setItem('goalsData', JSON.stringify(goalsData));
                 console.log(`✅ Миграция: добавлено ID для ${migrated} целей`);
             }
+
+            if (warnings.length > 0) {
+                console.warn('⚠️ Предупреждения миграции целей:', warnings);
+            }
+
+            return { migrated, warnings: warnings.length };
         }
 
         // Валидация дат цели
@@ -960,6 +1096,176 @@
             document.getElementById('goalEditModal').classList.remove('show');
             document.getElementById('goalEditForm').reset();
             console.log('❌ Закрыт модал редактирования цели');
+        }
+
+        // Feature 003 - US3: Goal Creation Functions
+
+        // Открыть модал создания цели
+        function openGoalCreateModal(studentId, studentName) {
+            console.log('🎯 Opening goal creation modal for:', studentName);
+
+            document.getElementById('createGoalStudentId').value = studentId;
+            document.getElementById('createGoalStudentName').value = studentName;
+
+            populateExerciseDropdown();
+
+            document.getElementById('goalCreateForm').reset();
+            document.getElementById('createGoalStudentName').value = studentName;
+            document.getElementById('goalCreateErrors').style.display = 'none';
+
+            // Set default dates (today + 30 days)
+            const today = new Date().toISOString().split('T')[0];
+            const future = new Date();
+            future.setDate(future.getDate() + 30);
+            const futureDate = future.toISOString().split('T')[0];
+
+            document.getElementById('createGoalStartDate').value = today;
+            document.getElementById('createGoalEndDate').value = futureDate;
+
+            // Add character counter for description
+            const descField = document.getElementById('createGoalDescription');
+            const lengthDisplay = document.getElementById('createGoalDescLength');
+            descField.addEventListener('input', () => {
+                lengthDisplay.textContent = descField.value.length;
+            });
+            lengthDisplay.textContent = '0';
+
+            document.getElementById('goalCreateModal').classList.add('show');
+        }
+
+        // Закрыть модал создания цели
+        function closeGoalCreateModal() {
+            document.getElementById('goalCreateModal').classList.remove('show');
+            document.getElementById('goalCreateForm').reset();
+            console.log('❌ Закрыт модал создания цели');
+        }
+
+        // Populate exercise dropdown from exercisesData
+        function populateExerciseDropdown() {
+            const select = document.getElementById('createGoalExercise');
+            select.innerHTML = '<option value="">Выберите упражнение</option>';
+
+            if (exercisesData.length === 0) {
+                select.innerHTML += '<option value="" disabled>Сначала синхронизируйтесь</option>';
+                select.disabled = true;
+                document.getElementById('createGoalSubmit').disabled = true;
+                return;
+            }
+
+            exercisesData.forEach(exercise => {
+                const option = document.createElement('option');
+                option.value = exercise.id;
+                option.textContent = exercise.name;
+                select.appendChild(option);
+            });
+
+            select.disabled = false;
+            document.getElementById('createGoalSubmit').disabled = false;
+        }
+
+        // Validate goal form
+        function validateGoalForm(formData) {
+            const errors = [];
+
+            if (!formData.exerciseId) errors.push('Выберите тип упражнения');
+            if (!formData.startDate) errors.push('Укажите дату начала');
+            if (!formData.endDate) errors.push('Укажите дату окончания');
+
+            if (formData.startDate && formData.endDate) {
+                const start = new Date(formData.startDate);
+                const end = new Date(formData.endDate);
+
+                if (end < start) {
+                    errors.push('Дата окончания должна быть позже даты начала');
+                }
+
+                const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
+                if (daysDiff > 365) {
+                    errors.push('Длительность цели не может превышать 1 год');
+                }
+            }
+
+            if (formData.description && formData.description.length > 200) {
+                errors.push('Описание не может превышать 200 символов');
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors: errors
+            };
+        }
+
+        // Handle goal creation
+        function handleGoalCreate(event) {
+            event.preventDefault();
+
+            const studentId = document.getElementById('createGoalStudentId').value;
+            const studentName = document.getElementById('createGoalStudentName').value;
+            const exerciseSelect = document.getElementById('createGoalExercise');
+            const exerciseId = exerciseSelect.value;
+            const exerciseName = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+            const startDate = document.getElementById('createGoalStartDate').value;
+            const endDate = document.getElementById('createGoalEndDate').value;
+            const description = document.getElementById('createGoalDescription').value;
+
+            // Validate form
+            const formData = { exerciseId, startDate, endDate, description };
+            const validation = validateGoalForm(formData);
+
+            if (!validation.valid) {
+                // Display errors
+                const errorsDiv = document.getElementById('goalCreateErrors');
+                errorsDiv.innerHTML = validation.errors.map(err => `<div>• ${err}</div>`).join('');
+                errorsDiv.style.display = 'block';
+                return;
+            }
+
+            // Create goal object with client UUID
+            const newGoal = {
+                id: generateUUID(),
+                studentId: studentId,
+                studentName: studentName,
+                exerciseId: exerciseId,
+                exerciseName: exerciseName,
+                startDate: startDate,
+                setDate: startDate, // Dual field support
+                endDate: endDate,
+                completionDate: '', // Empty until completed
+                description: description,
+                notes: description,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // Add to goalsData
+            goalsData.push(newGoal);
+
+            // Save to localStorage
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+
+            // Add to pendingChanges
+            pendingChanges.push({
+                type: 'goal',
+                action: 'create',
+                goalData: newGoal,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+
+            // Update UI
+            updatePendingIndicator();
+            const athleteCard = document.querySelector(`[data-athlete-id="${studentId}"]`);
+            if (athleteCard && athleteCard.classList.contains('expanded')) {
+                // Refresh athlete details if card is expanded
+                showAthleteDetails(studentId);
+            }
+
+            // Close modal
+            closeGoalCreateModal();
+
+            console.log('✅ Цель создана:', newGoal);
+            alert(`✅ Цель "${exerciseName}" добавлена для ${studentName}`);
         }
 
         // Сохранить изменения дат цели
@@ -1283,8 +1589,18 @@
                                 </div>
                             `;
                         }).join('')}
+                        <button class="add-goal-button" onclick="openGoalCreateModal('${athlete.id}', '${athlete.name}'); event.stopPropagation();" style="width: 100%; padding: 12px; margin-top: 10px; background: #2a2d3a; color: #8b8f9f; border: 1px dashed #3a3d4a; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s;">
+                            ➕ Добавить цель
+                        </button>
                     </div>
-                ` : '<div style="text-align: center; padding: 20px; color: #6b6f82;">Целей пока нет</div>'}
+                ` : `
+                    <div style="text-align: center; padding: 20px; color: #6b6f82;">
+                        <div style="margin-bottom: 15px;">Целей пока нет</div>
+                        <button class="add-goal-button" onclick="openGoalCreateModal('${athlete.id}', '${athlete.name}'); event.stopPropagation();" style="padding: 12px 20px; background: #2a2d3a; color: #8b8f9f; border: 1px dashed #3a3d4a; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s;">
+                            ➕ Добавить первую цель
+                        </button>
+                    </div>
+                `}
             `;
 
             document.getElementById('athleteModalTitle').textContent = `${athlete.lastName} ${athlete.firstName}`;
@@ -1366,24 +1682,27 @@
 
         // Обновление индикатора несинхронизированных изменений
         function updatePendingIndicator() {
-            const btn = document.getElementById('syncBtn');
-            const count = pendingChanges.length;
+            const button = document.getElementById('syncBtn');
+            if (!button) return;
 
-            if (count > 0) {
-                const athleteChanges = pendingChanges.filter(c => c.type === 'athlete').length;
-                const goalChanges = pendingChanges.filter(c => c.type === 'goal').length;
-                const goalEditChanges = pendingChanges.filter(c => c.type === 'goal_edit').length;
+            const athleteChanges = pendingChanges.filter(c => c.type === 'athlete').length;
+            const goalChanges = pendingChanges.filter(c => c.type === 'goal').length;
+            const goalEditChanges = pendingChanges.filter(c => c.type === 'goal_edit').length;
+            const totalChanges = pendingChanges.length;
+
+            if (totalChanges > 0) {
+                button.classList.add('pending');
+                button.classList.remove('syncing', 'success', 'error');
 
                 let text = [];
                 if (athleteChanges > 0) text.push(`${athleteChanges} показ.`);
                 if (goalChanges > 0) text.push(`${goalChanges} цел.`);
                 if (goalEditChanges > 0) text.push(`${goalEditChanges} ред.`);
 
-                btn.innerHTML = `<span>🔄</span><span>Синхронизировать (${text.join(', ')})</span>`;
-                btn.style.background = '#fbbf24';
+                button.innerHTML = `<span>🔄</span><span>Синхронизировать (${text.join(', ')})</span>`;
             } else {
-                btn.innerHTML = '<span>⚡</span><span>Синхронизировать</span>';
-                btn.style.background = '';
+                button.classList.remove('pending', 'syncing', 'success', 'error');
+                button.innerHTML = '<span>⚡</span><span>Синхронизировать</span>';
             }
         }
 
@@ -1436,34 +1755,62 @@
 
         // Синхронизация
         async function syncWithGoogleSheets() {
-            if (!navigator.onLine) {
-                alert('Нет интернета');
+            const button = document.getElementById('syncBtn');
+
+            // Prevent concurrent syncs
+            if (button.classList.contains('syncing')) {
+                console.log('⏳ Синхронизация уже идёт, пропускаем');
                 return;
             }
 
-            const btn = document.getElementById('syncBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span><span>Синхронизация...</span>';
+            // Start syncing state
+            button.classList.add('syncing');
+            button.classList.remove('pending', 'success', 'error');
+            button.disabled = true;
+            button.innerHTML = '<span class="sync-icon">⏳</span><span>Синхронизация...</span>';
+
+            const startTime = Date.now();
+            const totalChanges = pendingChanges.length;
+            let processedChanges = 0;
+
+            // Timeout handling (30 seconds)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, 30000);
 
             try {
                 // Сначала отправляем несохраненные изменения
                 if (pendingChanges.length > 0) {
                     console.log('📤 Отправка несохраненных изменений...');
+
+                    // Progress counter for >10 changes
+                    if (totalChanges > 10) {
+                        button.innerHTML = `<span class="sync-icon">⏳</span><span>Синхронизация... (0/${totalChanges})</span>`;
+                    }
+
                     await syncPendingChanges();
+                    processedChanges = totalChanges;
+
+                    if (totalChanges > 10) {
+                        button.innerHTML = `<span class="sync-icon">⏳</span><span>Синхронизация... (${processedChanges}/${totalChanges})</span>`;
+                    }
                 }
 
                 // Затем загружаем свежие данные
                 console.log('📥 Загрузка учеников...');
-                const studentsResponse = await fetch(`${WEBAPP_URL}?action=getAllStudents`);
+                const studentsResponse = await fetch(`${WEBAPP_URL}?action=getAllStudents`, { signal: controller.signal });
                 const studentsResult = await studentsResponse.json();
 
                 console.log('📥 Загрузка упражнений...');
-                const exercisesResponse = await fetch(`${WEBAPP_URL}?action=getExercises`);
+                const exercisesResponse = await fetch(`${WEBAPP_URL}?action=getExercises`, { signal: controller.signal });
                 const exercisesResult = await exercisesResponse.json();
 
                 console.log('📥 Загрузка целей...');
-                const goalsResponse = await fetch(`${WEBAPP_URL}?action=getGoals`);
+                const goalsResponse = await fetch(`${WEBAPP_URL}?action=getGoals`, { signal: controller.signal });
                 const goalsResult = await goalsResponse.json();
+
+                clearTimeout(timeoutId);
 
                 if (studentsResult.success && studentsResult.data.students) {
                     athletesData = studentsResult.data.students.map(s => ({
@@ -1518,13 +1865,44 @@
 
                 saveToLocalStorage();
                 renderAthletes();
-                alert(`✅ Синхронизация завершена!\nУченики: ${athletesData.length}\nУпражнения: ${exercisesData.length}\nЦели: ${goalsData.length}`);
+
+                // Success state (2 seconds)
+                button.classList.remove('syncing');
+                button.classList.add('success');
+                button.innerHTML = '<span>✅</span><span>Синхронизировано</span>';
+                button.disabled = false;
+
+                setTimeout(() => {
+                    button.classList.remove('success');
+                    updatePendingIndicator(); // Return to idle/pending
+                }, 2000);
+
+                console.log(`✅ Синхронизация завершена за ${Date.now() - startTime}ms`);
+                console.log(`Ученики: ${athletesData.length}, Упражнения: ${exercisesData.length}, Цели: ${goalsData.length}`);
+
             } catch (error) {
-                console.error('❌ Ошибка:', error);
-                alert('❌ Ошибка синхронизации: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                updatePendingIndicator();
+                console.error('❌ Ошибка синхронизации:', error);
+
+                button.classList.remove('syncing');
+                button.classList.add('error');
+                button.disabled = false;
+
+                // User-friendly error messages in Russian
+                let errorMsg = 'Ошибка синхронизации';
+                if (error.name === 'AbortError') {
+                    errorMsg = 'Проверьте подключение';
+                } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Нет интернета';
+                } else if (error.message.includes('500')) {
+                    errorMsg = 'Проблема на сервере';
+                }
+
+                button.innerHTML = `<span>❌</span><span>${errorMsg}</span>`;
+
+                setTimeout(() => {
+                    button.classList.remove('error');
+                    updatePendingIndicator(); // Return to pending state
+                }, 3000);
             }
         }
 
