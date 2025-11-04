@@ -1,54 +1,54 @@
-# Goals API Backend - Quick Start Guide
+# Goals API Backend - Руководство по развертыванию
 
-**Feature**: 001-goals-api-backend
-**Date**: 2025-11-04
-**Target**: Google Apps Script deployment
-
----
-
-## Overview
-
-This guide shows you how to deploy the Goals API backend to your test Google Sheets and integrate it with the Feature 003 frontend.
-
-**Deployment Time**: ~10 minutes
-**Prerequisites**: Google account with Sheets access
+**Фича**: 001-goals-api-backend
+**Дата**: 2025-11-04
+**Цель**: Развертывание Google Apps Script
 
 ---
 
-## Step 1: Prepare Google Sheets
+## Обзор
 
-### 1.1 Open Your Test Spreadsheet
+Это руководство показывает, как развернуть бэкенд Goals API в вашу тестовую Google Таблицу и интегрировать его с фронтендом из Feature 003.
 
-You mentioned you created a copy with this deployment URL:
+**Время развертывания**: ~10 минут
+**Требования**: Google аккаунт с доступом к Google Таблицам
+
+---
+
+## Шаг 1: Подготовка Google Таблицы
+
+### 1.1 Откройте вашу тестовую таблицу
+
+Вы упоминали, что создали копию с этим URL развертывания:
 ```
 https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec
 ```
 
-Open that Google Sheets file.
+Откройте эту Google Таблицу.
 
-### 1.2 Create Goals Sheet
+### 1.2 Создайте лист Goals
 
-1. Click the **+** button at bottom-left to add new sheet
-2. Rename it to exactly: `Goals`
-3. Add header row (Row 1) with these columns:
+1. Нажмите кнопку **+** внизу слева, чтобы добавить новый лист
+2. Переименуйте его точно в: `Goals`
+3. Добавьте строку заголовков (строка 1) с этими колонками:
 
 ```
 goalId | studentId | studentName | exerciseId | exerciseName | startDate | endDate | description | targetValue | notes | status | createdAt | updatedAt
 ```
 
-**Important**: Column names must match exactly (case-sensitive).
+**Важно**: Названия колонок должны совпадать точно (с учетом регистра).
 
-### 1.3 Create Exercises Sheet
+### 1.3 Создайте лист Exercises
 
-1. Add another new sheet
-2. Rename it to exactly: `Exercises`
-3. Add header row (Row 1):
+1. Добавьте еще один новый лист
+2. Переименуйте его точно в: `Exercises`
+3. Добавьте строку заголовков (строка 1):
 
 ```
 exerciseId | exerciseName | exerciseType
 ```
 
-4. Add sample exercise data (Row 2+):
+4. Добавьте тестовые данные упражнений (строка 2 и далее):
 
 | exerciseId | exerciseName | exerciseType |
 |-----------|--------------|--------------|
@@ -58,57 +58,57 @@ exerciseId | exerciseName | exerciseType
 | ex-uuid-squats | Приседания | squats |
 | ex-uuid-running | Бег | running |
 
-**Note**: You can add more exercises later. These are just for testing.
+**Примечание**: Вы можете добавить больше упражнений позже. Это только для тестирования.
 
 ---
 
-## Step 2: Deploy Apps Script Code
+## Шаг 2: Развертывание Apps Script кода
 
-### 2.1 Open Apps Script Editor
+### 2.1 Откройте редактор Apps Script
 
-1. In your Google Sheets, go to: **Extensions → Apps Script**
-2. You'll see Code.gs file (may have existing code)
-3. **Delete all existing code** or create a new file for this deployment
+1. В вашей Google Таблице перейдите: **Расширения → Apps Script**
+2. Вы увидите файл Code.gs (может быть существующий код)
+3. **Удалите весь существующий код** или создайте новый файл для этого развертывания
 
-### 2.2 Paste the Code
+### 2.2 Вставьте код
 
-Copy the complete Google Apps Script code from `Code.gs` file in this directory and paste it into the Apps Script editor.
+Скопируйте полный код Google Apps Script из файла `Code.gs` в этой директории и вставьте его в редактор Apps Script.
 
-**File location**: `specs/001-goals-api-backend/Code.gs`
+**Расположение файла**: `specs/001-goals-api-backend/Code.gs`
 
-### 2.3 Save the Project
+### 2.3 Сохраните проект
 
-1. Click the floppy disk icon or press `Cmd+S` (Mac) / `Ctrl+S` (Windows)
-2. Name the project: "WU Coach Goals API"
+1. Нажмите на иконку дискеты или нажмите `Cmd+S` (Mac) / `Ctrl+S` (Windows)
+2. Назовите проект: "WU Coach Goals API"
 
-### 2.4 Deploy as Web App
+### 2.4 Разверните как Web App
 
-1. Click **Deploy → New deployment**
-2. Click the gear icon ⚙️ next to "Select type"
-3. Choose **Web app**
-4. Configure:
-   - **Description**: "Goals API v1"
-   - **Execute as**: Me (your email)
-   - **Who has access**: Anyone (for MVP testing)
-5. Click **Deploy**
-6. **Authorize the app**:
-   - Click "Authorize access"
-   - Choose your Google account
-   - Click "Advanced" if you see warning
-   - Click "Go to WU Coach Goals API (unsafe)" - this is safe, it's your own code
-   - Click "Allow"
-7. Copy the **Web app URL** - it should be:
+1. Нажмите **Развертывание → Новое развертывание** (Deploy → New deployment)
+2. Нажмите на иконку шестеренки ⚙️ рядом с "Select type"
+3. Выберите **Веб-приложение** (Web app)
+4. Настройте:
+   - **Описание** (Description): "Goals API v1"
+   - **Запуск от имени** (Execute as): Я (ваш email)
+   - **У кого есть доступ** (Who has access): Все (Anyone) - для тестирования MVP
+5. Нажмите **Развернуть** (Deploy)
+6. **Авторизуйте приложение**:
+   - Нажмите "Authorize access" (Авторизовать доступ)
+   - Выберите ваш Google аккаунт
+   - Нажмите "Дополнительно" (Advanced), если видите предупреждение
+   - Нажмите "Перейти к WU Coach Goals API (небезопасно)" - это безопасно, это ваш собственный код
+   - Нажмите "Разрешить" (Allow)
+7. Скопируйте **URL веб-приложения** - он должен быть:
    ```
    https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec
    ```
 
 ---
 
-## Step 3: Test the API
+## Шаг 3: Тестирование API
 
-### 3.1 Test with curl (Terminal/Command Prompt)
+### 3.1 Тестирование с curl (Терминал/Командная строка)
 
-**Test getExercises**:
+**Тест getExercises**:
 ```bash
 curl -X POST \
   https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec \
@@ -116,7 +116,7 @@ curl -X POST \
   -d '{"action": "getExercises"}'
 ```
 
-**Expected response**:
+**Ожидаемый ответ**:
 ```json
 {
   "success": true,
@@ -127,7 +127,7 @@ curl -X POST \
 }
 ```
 
-**Test createGoal**:
+**Тест createGoal**:
 ```bash
 curl -X POST \
   https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec \
@@ -150,7 +150,7 @@ curl -X POST \
   }'
 ```
 
-**Expected response**:
+**Ожидаемый ответ**:
 ```json
 {
   "success": true,
@@ -159,211 +159,211 @@ curl -X POST \
 }
 ```
 
-**Verify**: Check your Goals sheet - you should see a new row with the goal data!
+**Проверка**: Проверьте ваш лист Goals - вы должны увидеть новую строку с данными цели!
 
-### 3.2 Test with Postman (Alternative)
+### 3.2 Тестирование с Postman (альтернатива)
 
-1. Open Postman
-2. Create new request:
-   - Method: POST
-   - URL: Your Web App URL
-   - Headers: `Content-Type: application/json`
-   - Body: Raw JSON (same as curl examples above)
-3. Send request
-4. Verify response structure matches API contract
+1. Откройте Postman
+2. Создайте новый запрос:
+   - Метод: POST
+   - URL: URL вашего Web App
+   - Заголовки: `Content-Type: application/json`
+   - Тело: Raw JSON (то же, что в примерах curl выше)
+3. Отправьте запрос
+4. Проверьте, что структура ответа соответствует API-контракту
 
 ---
 
-## Step 4: Integrate with Frontend
+## Шаг 4: Интеграция с фронтендом
 
-### 4.1 Update index.html
+### 4.1 Обновите index.html
 
-Open `index.html` and find line ~748:
+Откройте `index.html` и найдите строку ~748:
 
 ```javascript
-const WEBAPP_URL = 'https://script.google.com/macros/s/OLD_URL/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/СТАРЫЙ_URL/exec';
 ```
 
-Replace with your new test URL:
+Замените на ваш новый тестовый URL:
 
 ```javascript
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec';
 ```
 
-### 4.2 Test Frontend Integration
+### 4.2 Тестирование интеграции с фронтендом
 
-1. Open `index.html` in mobile browser (Safari iOS or Chrome Android)
-2. Click "Добавить цель" button (⊕ icon in goals section)
-3. Fill out the form:
-   - Student: Select athlete
-   - Exercise: Select exercise (dropdown should populate from Exercises sheet)
-   - Start date: Pick date
-   - End date: Pick later date
-   - Description: "Первая цель через API"
-   - Target: 15
-4. Click "Создать цель"
-5. **Observe**:
-   - Goal appears in list with ⏳ pending indicator
-   - Sync button shows orange dot (has pending changes)
-6. Click sync button
-7. **Verify**:
-   - Sync completes successfully
-   - ⏳ indicator disappears
-   - Check Goals sheet - new row with server UUID
+1. Откройте `index.html` в мобильном браузере (Safari iOS или Chrome Android)
+2. Нажмите кнопку "Добавить цель" (иконка ⊕ в секции целей)
+3. Заполните форму:
+   - Ученик: Выберите атлета
+   - Упражнение: Выберите упражнение (dropdown должен заполниться из листа Exercises)
+   - Дата начала: Выберите дату
+   - Дата окончания: Выберите более позднюю дату
+   - Описание: "Первая цель через API"
+   - Цель: 15
+4. Нажмите "Создать цель"
+5. **Наблюдайте**:
+   - Цель появляется в списке с индикатором ⏳ (ожидает синхронизации)
+   - Кнопка синхронизации показывает оранжевую точку (есть изменения для синхронизации)
+6. Нажмите кнопку синхронизации
+7. **Проверьте**:
+   - Синхронизация завершается успешно
+   - Индикатор ⏳ исчезает
+   - Проверьте лист Goals - новая строка с server UUID
 
-### 4.3 Test Goal Editing
+### 4.3 Тестирование редактирования целей
 
-1. Click on a goal in the list
-2. Edit modal opens
-3. Change dates or description
-4. Click "Сохранить"
-5. Sync changes
-6. Verify in Goals sheet - row updated with new values
+1. Нажмите на цель в списке
+2. Открывается модальное окно редактирования
+3. Измените даты или описание
+4. Нажмите "Сохранить"
+5. Синхронизируйте изменения
+6. Проверьте в листе Goals - строка обновлена с новыми значениями
 
-### 4.4 Test Goal Deletion
+### 4.4 Тестирование удаления целей
 
-1. Click on a goal
-2. Click "Удалить цель" button
-3. Confirm deletion
-4. Sync changes
-5. Verify in Goals sheet - row removed
-
----
-
-## Step 5: Troubleshooting
-
-### API Not Responding
-
-**Symptom**: Fetch errors, timeout errors
-
-**Solutions**:
-1. Check Web App URL is correct (no typos)
-2. Verify deployment is active: Apps Script → Deploy → Manage deployments
-3. Check execution logs: Apps Script → Executions (view errors)
-4. Ensure "Who has access" is set to "Anyone"
-
-### Validation Errors
-
-**Symptom**: "Validation failed" responses
-
-**Solutions**:
-1. Check required fields are present (studentId, exerciseId, dates)
-2. Verify date format is YYYY-MM-DD (not MM/DD/YYYY)
-3. Ensure endDate >= startDate
-4. Check description length ≤ 200 chars
-
-### Goal Not Found Errors
-
-**Symptom**: 404 errors on editGoal/deleteGoal
-
-**Solutions**:
-1. Verify goalId exists in Goals sheet (column A)
-2. Check for typos in goalId
-3. Ensure goal wasn't already deleted
-
-### Sheet Structure Errors
-
-**Symptom**: "Sheet not found" or data not appearing
-
-**Solutions**:
-1. Verify sheet names: `Goals` and `Exercises` (case-sensitive, no spaces)
-2. Check header row is Row 1 (not Row 2)
-3. Ensure column names match exactly (see Step 1.2, 1.3)
-4. Try refreshing spreadsheet
-
-### Authorization Issues
-
-**Symptom**: "Authorization required" or "Access denied"
-
-**Solutions**:
-1. Re-authorize: Apps Script → Deploy → Manage deployments → Edit → Authorize
-2. Check "Execute as" is set to "Me"
-3. Try incognito/private window to clear auth cache
+1. Нажмите на цель
+2. Нажмите кнопку "Удалить цель"
+3. Подтвердите удаление
+4. Синхронизируйте изменения
+5. Проверьте в листе Goals - строка удалена
 
 ---
 
-## Step 6: Monitoring & Logs
+## Шаг 5: Устранение неполадок
 
-### View Execution Logs
+### API не отвечает
 
-1. Apps Script editor → Left sidebar → Executions (clock icon)
-2. See all API requests with timestamps
-3. Click on execution to see detailed logs
-4. Look for `console.log()` outputs and error stack traces
+**Симптом**: Ошибки fetch, таймауты
 
-### Check Quota Usage
+**Решения**:
+1. Проверьте, что URL Web App правильный (без опечаток)
+2. Убедитесь, что развертывание активно: Apps Script → Deploy → Manage deployments
+3. Проверьте логи выполнения: Apps Script → Executions (посмотреть ошибки)
+4. Убедитесь, что "Who has access" установлено на "Anyone"
 
-1. Apps Script editor → Services → Drive API (or any service)
-2. View quotas dashboard
-3. Monitor:
-   - URL Fetch calls: 20,000/day limit
-   - Execution time: 6 minutes/execution limit
-   - Concurrent executions: 30 limit
+### Ошибки валидации
 
-**Note**: For single coach usage, quotas are not a concern.
+**Симптом**: Ответы "Validation failed"
 
----
+**Решения**:
+1. Проверьте, что присутствуют обязательные поля (studentId, exerciseId, dates)
+2. Убедитесь, что формат даты YYYY-MM-DD (не MM/DD/YYYY)
+3. Проверьте, что endDate >= startDate
+4. Проверьте длину описания ≤ 200 символов
 
-## Step 7: Next Steps
+### Ошибки "Цель не найдена"
 
-### Production Deployment
+**Симптом**: Ошибки 404 на editGoal/deleteGoal
 
-When ready for production (not now):
+**Решения**:
+1. Убедитесь, что goalId существует в листе Goals (колонка A)
+2. Проверьте на опечатки в goalId
+3. Убедитесь, что цель не была уже удалена
 
-1. **Add Authentication**:
-   - Deploy as "Anyone with Google account"
-   - Implement email whitelist in doPost
-   - Verify coach role
+### Ошибки структуры листа
 
-2. **Update Frontend**:
-   - Change WEBAPP_URL to production deployment
-   - Remove test data from localStorage
+**Симптом**: "Sheet not found" или данные не появляются
 
-3. **Data Migration**:
-   - Export test data from test Sheets
-   - Import to production Sheets
-   - Verify all goals and exercises
+**Решения**:
+1. Проверьте названия листов: `Goals` и `Exercises` (с учетом регистра, без пробелов)
+2. Проверьте, что строка заголовков - это строка 1 (не строка 2)
+3. Убедитесь, что названия колонок совпадают точно (см. Шаг 1.2, 1.3)
+4. Попробуйте обновить таблицу
 
-4. **Testing**:
-   - Full regression testing
-   - Mobile device testing (iOS + Android)
-   - Offline mode testing
+### Проблемы с авторизацией
 
-### Future Enhancements
+**Симптом**: "Authorization required" или "Access denied"
 
-- Soft delete (status: 'cancelled') instead of hard delete
-- Batch operations for sync optimization
-- Webhook notifications for goal completions
-- Data export endpoints (CSV, PDF reports)
+**Решения**:
+1. Повторно авторизуйте: Apps Script → Deploy → Manage deployments → Edit → Authorize
+2. Проверьте, что "Execute as" установлено на "Me"
+3. Попробуйте режим инкогнито/приватный режим для очистки кэша авторизации
 
 ---
 
-## API Reference
+## Шаг 6: Мониторинг и логи
 
-For complete API specification, see:
-- **API Contract**: `specs/003-goal-fixes-and-creation/contracts/google-apps-script-api.md`
-- **Feature Spec**: `specs/001-goals-api-backend/spec.md`
+### Просмотр логов выполнения
 
-### Available Endpoints
+1. Редактор Apps Script → Левая панель → Executions (иконка часов)
+2. Увидите все API запросы с временными метками
+3. Нажмите на выполнение, чтобы увидеть подробные логи
+4. Ищите выводы `console.log()` и трассировки стека ошибок
 
-| Action | Purpose | Priority |
-|--------|---------|----------|
-| `getExercises` | Fetch exercise definitions | P2 |
-| `getGoals` | Fetch all goals | P1 |
-| `createGoal` | Create new goal with server UUID | P1 |
-| `editGoal` | Update existing goal fields | P2 |
-| `deleteGoal` | Hard delete goal from sheet | P3 |
+### Проверка использования квот
 
----
+1. Редактор Apps Script → Services → Drive API (или любой сервис)
+2. Посмотрите дашборд квот
+3. Отслеживайте:
+   - URL Fetch вызовы: лимит 20,000/день
+   - Время выполнения: лимит 6 минут/выполнение
+   - Одновременные выполнения: лимит 30
 
-## Support
-
-**Issue Tracker**: Check Apps Script execution logs first
-**Documentation**: See API contract and feature spec
-**Testing**: Use Postman or curl for isolated endpoint testing
+**Примечание**: Для использования одним тренером квоты не являются проблемой.
 
 ---
 
-**Deployment Status**: ⏳ Ready for deployment
-**Last Updated**: 2025-11-04
-**Version**: 1.0.0
+## Шаг 7: Следующие шаги
+
+### Промышленное развертывание
+
+Когда будете готовы к продакшену (не сейчас):
+
+1. **Добавить аутентификацию**:
+   - Развернуть как "Anyone with Google account"
+   - Реализовать whitelist email в doPost
+   - Проверять роль тренера
+
+2. **Обновить фронтенд**:
+   - Изменить WEBAPP_URL на продакшн развертывание
+   - Удалить тестовые данные из localStorage
+
+3. **Миграция данных**:
+   - Экспортировать тестовые данные из тестовых Таблиц
+   - Импортировать в продакшн Таблицы
+   - Проверить все цели и упражнения
+
+4. **Тестирование**:
+   - Полное регрессионное тестирование
+   - Тестирование на мобильных устройствах (iOS + Android)
+   - Тестирование оффлайн режима
+
+### Будущие улучшения
+
+- Мягкое удаление (status: 'cancelled') вместо жесткого удаления
+- Пакетные операции для оптимизации синхронизации
+- Webhook уведомления для завершения целей
+- Endpoints экспорта данных (CSV, PDF отчеты)
+
+---
+
+## Справка по API
+
+Для полной спецификации API смотрите:
+- **API-контракт**: `specs/003-goal-fixes-and-creation/contracts/google-apps-script-api.md`
+- **Спецификация фичи**: `specs/001-goals-api-backend/spec.md`
+
+### Доступные endpoints
+
+| Action | Назначение | Приоритет |
+|--------|-----------|----------|
+| `getExercises` | Получить определения упражнений | P2 |
+| `getGoals` | Получить все цели | P1 |
+| `createGoal` | Создать новую цель с server UUID | P1 |
+| `editGoal` | Обновить поля существующей цели | P2 |
+| `deleteGoal` | Жестко удалить цель из листа | P3 |
+
+---
+
+## Поддержка
+
+**Трекер проблем**: Сначала проверьте логи выполнения Apps Script
+**Документация**: Смотрите API-контракт и спецификацию фичи
+**Тестирование**: Используйте Postman или curl для изолированного тестирования endpoints
+
+---
+
+**Статус развертывания**: ⏳ Готово к развертыванию
+**Последнее обновление**: 2025-11-04
+**Версия**: 1.0.0
