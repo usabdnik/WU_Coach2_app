@@ -420,6 +420,8 @@ Before committing code changes:
 ## Active Technologies
 - Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + None (zero dependencies per constitution - no npm packages, frameworks, or libraries) (001-goal-editing-athlete-sync)
 - localStorage API (primary, 5-10MB limit) + Google Apps Script Web App (secondary sync) (001-goal-editing-athlete-sync)
+- Vanilla JavaScript ES6+ (in-browser), HTML5, CSS3 + None (zero npm dependencies by constitution) (003-goal-fixes-and-creation)
+- localStorage (primary) + Google Apps Script Web App (secondary sync) (003-goal-fixes-and-creation)
 
 ## Recent Changes
 - 001-goal-editing-athlete-sync: Added Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + None (zero dependencies per constitution - no npm packages, frameworks, or libraries)
