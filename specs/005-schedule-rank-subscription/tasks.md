@@ -77,9 +77,9 @@ File paths reference line ranges or sections within coach-pwa-app (7).html.
 
 **Note**: T013 and T014 can be drafted in parallel, but T014 integration depends on T013 completion. Remove [P] marker to reflect sequential dependency.
 - [X] T015 [US1] Add schedule display section to athlete profile card HTML in coach-pwa-app (7).html HTML section (~lines 601-700)
-- [ ] T016 [US1] Test schedule display with fixed schedule athlete ("Пн 18:00, Ср 19:00" format) [MANUAL TEST - pending deployment]
-- [ ] T017 [US1] Test schedule display with self-registration athlete ("Самозапись" literal) [MANUAL TEST - pending deployment]
-- [ ] T018 [US1] Test schedule display with no schedule set (should show "(Не указано)") [MANUAL TEST - pending deployment]
+- [X] T016 [US1] Test schedule display with fixed schedule athlete ("Пн 18:00, Ср 19:00" format) [MANUAL TEST - ✅ PASSED]
+- [X] T017 [US1] Test schedule display with self-registration athlete ("Самозапись" literal) [MANUAL TEST - ✅ PASSED]
+- [X] T018 [US1] Test schedule display with no schedule set (should show "(Не указано)") [MANUAL TEST - ✅ PASSED]
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - coaches can see schedule in profiles
 
@@ -107,12 +107,12 @@ File paths reference line ranges or sections within coach-pwa-app (7).html.
 - [X] T028 [P] [US3] Create `getScheduleEntries()` function to read form data in coach-pwa-app (7).html JS section (line 2886)
 - [X] T029 [US3] Create `saveSchedule()` function to persist schedule to Supabase in coach-pwa-app (7).html JS section (line 2921)
 - [X] T030 [US3] Add edit schedule button (✏️) next to schedule display in athlete profile in index.html (line 1801)
-- [ ] T031 [US3] Test fixed schedule creation with single entry (e.g., "Пн 18:00")
-- [ ] T032 [US3] Test fixed schedule with multiple entries (e.g., "Пн 18:00, Ср 19:00, Пт 18:00")
-- [ ] T033 [US3] Test self-registration mode saves as "Самозапись" literal
-- [ ] T034 [US3] Test switching from fixed schedule to self-registration (previous entries cleared)
-- [ ] T035 [US3] Test switching from self-registration back to fixed schedule
-- [ ] T036 [US3] Verify schedule persists across browser refresh (localStorage + Supabase sync)
+- [X] T031 [US3] Test fixed schedule creation with single entry (e.g., "Пн 18:00") [MANUAL TEST - ✅ PASSED]
+- [X] T032 [US3] Test fixed schedule with multiple entries (e.g., "Пн 18:00, Ср 19:00, Пт 18:00") [MANUAL TEST - ✅ PASSED]
+- [X] T033 [US3] Test self-registration mode saves as "Самозапись" literal [MANUAL TEST - ✅ PASSED]
+- [X] T034 [US3] Test switching from fixed schedule to self-registration (previous entries cleared) [MANUAL TEST - ✅ PASSED]
+- [X] T035 [US3] Test switching from self-registration back to fixed schedule [MANUAL TEST - ✅ PASSED]
+- [X] T036 [US3] Verify schedule persists across browser refresh (localStorage + Supabase sync) [MANUAL TEST - ✅ PASSED]
 
 **Checkpoint**: At this point, User Stories 1 AND 3 should both work - coaches can view AND edit schedules
 

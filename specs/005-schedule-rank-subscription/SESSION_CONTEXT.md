@@ -74,15 +74,15 @@ Phase 1 завершена - миграция задеплоена.
 Начинай с Phase 2.
 ```
 
-## Progress: 30/95 tasks (32%)
-- [X] Phase 1: Setup (T001-T005) - 5 tasks
-- [X] Phase 2: Foundational (T006-T012) - 7 tasks
-- [X] Phase 3: User Story 1 (T013-T018) - 6 tasks (3 manual tests pending deployment)
-- [X] Phase 4: User Story 3 (T019-T036) - 18 tasks (manual tests pending deployment)
-- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering
-- [ ] Phase 6: User Story 4 (T054-T065) - Rank start recording
-- [ ] Phase 7: User Story 5 (T066-T076) - Rank end recording
-- [ ] Phase 8: Polish (T077-T095) - Validation & documentation
+## Progress: 36/95 tasks (38%)
+- [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
+- [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
+- [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
+- [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
+- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 17 tasks
+- [ ] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks
+- [ ] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks
+- [ ] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks
 
 ## Key Files
 - `coach-pwa-app (7).html` - Main PWA (single-file architecture)
