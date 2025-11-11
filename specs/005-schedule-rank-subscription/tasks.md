@@ -95,18 +95,18 @@ File paths reference line ranges or sections within coach-pwa-app (7).html.
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Create schedule edit modal HTML structure with type selector in coach-pwa-app (7).html HTML section (~lines 601-700)
-- [ ] T020 [US3] Add day-of-week selector (Пн-Вс) and time input fields to modal in coach-pwa-app (7).html HTML section (~lines 601-700)
-- [ ] T021 [US3] Add "Фиксированное расписание" and "Самозапись" toggle buttons to modal in coach-pwa-app (7).html HTML section (~lines 601-700)
-- [ ] T022 [P] [US3] Create `openScheduleModal(athleteId)` function in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T023 [P] [US3] Create `closeScheduleModal()` function in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T024 [P] [US3] Create `selectScheduleType(type)` function to toggle fixed/self-reg modes in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T025 [P] [US3] Create `renderScheduleEntries(entries)` function to display schedule slots in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T026 [P] [US3] Create `addScheduleEntry()` function to add new time slot in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T027 [P] [US3] Create `removeScheduleEntry(index)` function to delete time slot in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T028 [P] [US3] Create `getScheduleEntries()` function to read form data in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T029 [US3] Create `saveSchedule()` function to persist schedule to Supabase in coach-pwa-app (7).html JS section (~lines 701-2500)
-- [ ] T030 [US3] Add edit schedule button (✏️) next to schedule display in athlete profile in coach-pwa-app (7).html
+- [X] T019 [US3] Create schedule edit modal HTML structure with type selector in coach-pwa-app (7).html HTML section (~lines 995-1042)
+- [X] T020 [US3] Add day-of-week selector (Пн-Вс) and time input fields to modal in coach-pwa-app (7).html HTML section (~lines 995-1042)
+- [X] T021 [US3] Add "Фиксированное расписание" and "Самозапись" toggle buttons to modal in coach-pwa-app (7).html HTML section (~lines 995-1042)
+- [X] T022 [P] [US3] Create `openScheduleModal(athleteId)` function in coach-pwa-app (7).html JS section (line 2790)
+- [X] T023 [P] [US3] Create `closeScheduleModal()` function in coach-pwa-app (7).html JS section (line 2815)
+- [X] T024 [P] [US3] Create `selectScheduleType(type)` function to toggle fixed/self-reg modes in coach-pwa-app (7).html JS section (line 2823)
+- [X] T025 [P] [US3] Create `renderScheduleEntries(entries)` function to display schedule slots in coach-pwa-app (7).html JS section (line 2843)
+- [X] T026 [P] [US3] Create `addScheduleEntry()` function to add new time slot in coach-pwa-app (7).html JS section (line 2870)
+- [X] T027 [P] [US3] Create `removeScheduleEntry(index)` function to delete time slot in coach-pwa-app (7).html JS section (line 2878)
+- [X] T028 [P] [US3] Create `getScheduleEntries()` function to read form data in coach-pwa-app (7).html JS section (line 2886)
+- [X] T029 [US3] Create `saveSchedule()` function to persist schedule to Supabase in coach-pwa-app (7).html JS section (line 2921)
+- [X] T030 [US3] Add edit schedule button (✏️) next to schedule display in athlete profile in index.html (line 1801)
 - [ ] T031 [US3] Test fixed schedule creation with single entry (e.g., "Пн 18:00")
 - [ ] T032 [US3] Test fixed schedule with multiple entries (e.g., "Пн 18:00, Ср 19:00, Пт 18:00")
 - [ ] T033 [US3] Test self-registration mode saves as "Самозапись" literal
