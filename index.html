@@ -8,6 +8,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Тренер">
     <title>Gym Coach</title>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             margin: 0;
@@ -806,7 +810,14 @@
     <script>
         console.log('✅ JavaScript загружен');
 
-        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxTKZWnMPQZZpEm9egEEw43fXbyD_AxiYzFUxjqLmBez_BZ08fWA-IXVOnNmhzpSdYGoQ/exec';
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://mjkssesvhowmncyctmvs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNjU2MzgsImV4cCI6MjA3NTc0MTYzOH0.jRoTOGiwjF79DdTFmerhpBFqu6tmHob3jwGeHJxiuO0';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('✅ Supabase client инициализирован');
+
+        // Google Sheets (legacy - будет удалено после миграции)
+        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxXRBjU4-0PBBAxzHFGkd5G7eJxP9GuStzc8q13RyN1k3sd6hHgz1ET46mhlgQSJ6-bVg/exec';
         const MONTHS = ['Сент', 'Окт', 'Нояб', 'Дек', 'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг'];
 
         let athletesData = [];
@@ -1363,7 +1374,7 @@
             setupEventListeners();
 
             if (navigator.onLine && athletesData.length === 0) {
-                syncWithGoogleSheets();
+                syncWithSupabase(); // Switched to Supabase
             }
         });
 
@@ -1753,6 +1764,424 @@
             document.getElementById('recordsModal').classList.add('show');
         }
 
+        // ==========================================
+        // SUPABASE INTEGRATION
+        // ==========================================
+
+        // Map month number to Russian month name
+        function getMonthName(date) {
+            const monthMap = {
+                9: 'Сент', 10: 'Окт', 11: 'Нояб', 12: 'Дек',
+                1: 'Янв', 2: 'Фев', 3: 'Мар', 4: 'Апр',
+                5: 'Май', 6: 'Июн', 7: 'Июл', 8: 'Авг'
+            };
+            const d = new Date(date);
+            return monthMap[d.getMonth() + 1];
+        }
+
+        // Map exercise name to field name
+        function getExerciseFieldName(exerciseName) {
+            if (exerciseName.includes('Подтяг')) return 'pullUps';
+            if (exerciseName.includes('Отжимания от пола')) return 'pushUps';
+            if (exerciseName.includes('брусьев')) return 'dips';
+            return null;
+        }
+
+        // Transform Supabase athlete to PWA format
+        function transformSupabaseAthlete(athlete, performances = []) {
+            // Parse name (format: "Фамилия Имя" or just "Имя")
+            const nameParts = athlete.name.trim().split(' ');
+            const lastName = nameParts.length > 1 ? nameParts[0] : '';
+            const firstName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
+
+            // Build monthly performance records from performances table
+            const monthlyPerformance = MONTHS.map(month => ({
+                month: month,
+                pullUps: 0,
+                pushUps: 0,
+                dips: 0
+            }));
+
+            // Group performances by month
+            const records = { pullUps: {}, pushUps: {}, dips: {} };
+
+            // Filter performances for this athlete and map to monthly records
+            const athletePerformances = performances.filter(p => p.athlete_id === athlete.id);
+
+            athletePerformances.forEach(perf => {
+                const monthName = getMonthName(perf.recorded_at);
+                const fieldName = getExerciseFieldName(perf.exercises?.name || '');
+
+                if (monthName && fieldName) {
+                    // Update monthly performance
+                    const monthRecord = monthlyPerformance.find(m => m.month === monthName);
+                    if (monthRecord) {
+                        monthRecord[fieldName] = perf.value;
+                    }
+
+                    // Update records for max calculation
+                    records[fieldName][monthName] = perf.value;
+                }
+            });
+
+            return {
+                id: athlete.id,
+                lastName: lastName,
+                firstName: firstName,
+                name: athlete.name,
+                group: athlete.group_name || 'Начинающие',
+                schedule: '', // TODO: Add schedule field to Supabase schema
+                active: athlete.status === 'active' ? 'Да' : 'Нет',
+                status: athlete.status,
+                season: athlete.season || currentSeason?.name,
+                performance: monthlyPerformance,
+                records: records,
+                created: athlete.created_at,
+                updated: athlete.updated_at
+            };
+        }
+
+        // Transform Supabase goal to PWA format
+        function transformSupabaseGoal(goal, athleteName, exerciseName) {
+            return {
+                id: goal.id,
+                studentId: goal.athlete_id,
+                studentName: athleteName,
+                exerciseId: goal.exercise_id,
+                exerciseName: exerciseName,
+                startDate: goal.start_date,
+                setDate: goal.start_date, // Dual field support
+                endDate: goal.end_date,
+                completionDate: goal.completed ? goal.end_date : '',
+                description: goal.description || '',
+                notes: goal.description || '',
+                status: goal.completed ? 'completed' : 'active',
+                targetValue: goal.target_value,
+                createdAt: goal.created_at,
+                updatedAt: goal.updated_at
+            };
+        }
+
+        // Sync with Supabase (NEW)
+        async function syncWithSupabase() {
+            const button = document.getElementById('syncBtn');
+
+            // Prevent concurrent syncs
+            if (button.classList.contains('syncing')) {
+                console.log('⏳ Синхронизация уже идёт, пропускаем');
+                return;
+            }
+
+            // Start syncing state
+            button.classList.add('syncing');
+            button.classList.remove('pending', 'success', 'error');
+            button.disabled = true;
+            button.innerHTML = '<span class="sync-icon">⏳</span><span>Синхронизация...</span>';
+
+            const startTime = Date.now();
+            const totalChanges = pendingChanges.length;
+
+            try {
+                // Step 1: Sync pending changes (if any)
+                if (pendingChanges.length > 0) {
+                    console.log('📤 Отправка несинхронизированных изменений в Supabase...');
+                    await syncPendingChangesToSupabase();
+                }
+
+                // Step 2: Fetch fresh data from Supabase
+                console.log('📥 Загрузка данных из Supabase...');
+
+                // Fetch athletes
+                const { data: athletes, error: athletesError } = await supabaseClient
+                    .from('athletes')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (athletesError) throw athletesError;
+
+                // Fetch exercises
+                const { data: exercises, error: exercisesError } = await supabaseClient
+                    .from('exercises')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (exercisesError) throw exercisesError;
+
+                // Fetch goals with athlete and exercise names
+                const { data: goals, error: goalsError } = await supabaseClient
+                    .from('goals')
+                    .select(`
+                        *,
+                        athletes!inner(name),
+                        exercises!inner(name)
+                    `);
+
+                if (goalsError) throw goalsError;
+
+                // Fetch performances (for athlete monthly records)
+                const { data: performances, error: performancesError } = await supabaseClient
+                    .from('performances')
+                    .select(`
+                        *,
+                        exercises!inner(name, type)
+                    `);
+
+                if (performancesError) throw performancesError;
+
+                // Step 3: Transform data to PWA format
+                console.log('🔄 Трансформация данных...');
+
+                // Transform athletes with performances
+                athletesData = athletes.map(athlete => transformSupabaseAthlete(athlete, performances));
+
+                // Transform exercises (simple mapping)
+                exercisesData = exercises.map(ex => ({
+                    id: ex.id,
+                    name: ex.name,
+                    type: ex.type,
+                    category: ex.category,
+                    unit: ex.unit || 'count'
+                }));
+
+                // Transform goals with JOIN data
+                goalsData = goals.map(goal => transformSupabaseGoal(
+                    goal,
+                    goal.athletes?.name || 'Unknown',
+                    goal.exercises?.name || 'Unknown'
+                ));
+
+                // Step 4: Save to localStorage
+                saveToLocalStorage();
+                calculateAllTimeRecords();
+                renderAthletes();
+
+                // Success state
+                button.classList.remove('syncing');
+                button.classList.add('success');
+                button.innerHTML = '<span>✅</span><span>Синхронизировано</span>';
+                button.disabled = false;
+
+                setTimeout(() => {
+                    button.classList.remove('success');
+                    updatePendingIndicator();
+                }, 2000);
+
+                console.log(`✅ Синхронизация с Supabase завершена за ${Date.now() - startTime}ms`);
+                console.log(`📊 Загружено: Athletes=${athletesData.length}, Exercises=${exercisesData.length}, Goals=${goalsData.length}`);
+
+            } catch (error) {
+                console.error('❌ Ошибка синхронизации с Supabase:', error);
+
+                button.classList.remove('syncing');
+                button.classList.add('error');
+                button.disabled = false;
+
+                let errorMsg = 'Ошибка Supabase';
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Нет интернета';
+                } else if (error.code) {
+                    errorMsg = `Ошибка ${error.code}`;
+                }
+
+                button.innerHTML = `<span>❌</span><span>${errorMsg}</span>`;
+
+                setTimeout(() => {
+                    button.classList.remove('error');
+                    updatePendingIndicator();
+                }, 3000);
+            }
+        }
+
+        // Sync pending changes to Supabase
+        async function syncPendingChangesToSupabase() {
+            const errors = [];
+            const successfulChanges = [];
+
+            // Coalesce changes (merge multiple edits to same entity)
+            const coalescedChanges = coalescePendingChanges();
+            console.log(`📊 Оптимизация очереди: ${pendingChanges.length} → ${coalescedChanges.length} изменений`);
+
+            for (const change of coalescedChanges) {
+                try {
+                    if (change.type === 'athlete') {
+                        // Update athlete record
+                        console.log('📤 Обновление спортсмена в Supabase:', change.athleteName);
+
+                        // Update athlete basic info (group, schedule)
+                        const { error: athleteError } = await supabaseClient
+                            .from('athletes')
+                            .update({
+                                group_name: change.data.group,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', change.athleteId);
+
+                        if (athleteError) throw athleteError;
+
+                        // Get exercise IDs for mapping
+                        const exerciseMap = {
+                            'pullUps': exercisesData.find(e => e.name === 'Подтягивания')?.id,
+                            'pushUps': exercisesData.find(e => e.name === 'Отжимания от пола')?.id,
+                            'dips': exercisesData.find(e => e.name === 'Отжимания от брусьев')?.id
+                        };
+
+                        // Delete old performances for this athlete (clean slate approach)
+                        const { error: deleteError } = await supabaseClient
+                            .from('performances')
+                            .delete()
+                            .eq('athlete_id', change.athleteId);
+
+                        if (deleteError) throw deleteError;
+
+                        // Insert new performances
+                        const performancesToInsert = [];
+
+                        change.data.performance.forEach((monthData, index) => {
+                            const month = MONTHS[index];
+
+                            // Calculate date for this month (current season)
+                            const monthIndex = MONTHS.indexOf(month);
+                            let year = currentSeason.startYear;
+                            let monthNumber = 9 + monthIndex; // Sept = 9
+
+                            if (monthNumber > 12) {
+                                monthNumber -= 12;
+                                year = currentSeason.endYear;
+                            }
+
+                            const recorded_at = `${year}-${String(monthNumber).padStart(2, '0')}-15`;
+
+                            // Add pull-ups performance
+                            if (monthData.pullUps && monthData.pullUps > 0 && exerciseMap.pullUps) {
+                                performancesToInsert.push({
+                                    athlete_id: change.athleteId,
+                                    exercise_id: exerciseMap.pullUps,
+                                    value: monthData.pullUps,
+                                    recorded_at: recorded_at,
+                                    notes: month
+                                });
+                            }
+
+                            // Add push-ups performance
+                            if (monthData.pushUps && monthData.pushUps > 0 && exerciseMap.pushUps) {
+                                performancesToInsert.push({
+                                    athlete_id: change.athleteId,
+                                    exercise_id: exerciseMap.pushUps,
+                                    value: monthData.pushUps,
+                                    recorded_at: recorded_at,
+                                    notes: month
+                                });
+                            }
+
+                            // Add dips performance
+                            if (monthData.dips && monthData.dips > 0 && exerciseMap.dips) {
+                                performancesToInsert.push({
+                                    athlete_id: change.athleteId,
+                                    exercise_id: exerciseMap.dips,
+                                    value: monthData.dips,
+                                    recorded_at: recorded_at,
+                                    notes: month
+                                });
+                            }
+                        });
+
+                        // Insert all performances in one batch
+                        if (performancesToInsert.length > 0) {
+                            const { error: insertError } = await supabaseClient
+                                .from('performances')
+                                .insert(performancesToInsert);
+
+                            if (insertError) throw insertError;
+                            console.log(`✅ Сохранено ${performancesToInsert.length} показателей`);
+                        }
+
+                        successfulChanges.push(change);
+
+                    } else if (change.type === 'goal') {
+                        if (change.action === 'create') {
+                            console.log('📤 Создание цели в Supabase:', change.goalData.exerciseName);
+
+                            const { error } = await supabaseClient
+                                .from('goals')
+                                .insert({
+                                    id: change.goalData.id,
+                                    athlete_id: change.goalData.studentId,
+                                    exercise_id: change.goalData.exerciseId,
+                                    target_value: change.goalData.targetValue || 10,
+                                    start_date: change.goalData.startDate,
+                                    end_date: change.goalData.endDate,
+                                    description: change.goalData.description,
+                                    completed: false
+                                });
+
+                            if (error) throw error;
+                            successfulChanges.push(change);
+
+                        } else if (change.action === 'delete') {
+                            console.log('📤 Удаление цели в Supabase:', change.goalId);
+
+                            const { error } = await supabaseClient
+                                .from('goals')
+                                .delete()
+                                .eq('id', change.goalId);
+
+                            if (error) throw error;
+                            successfulChanges.push(change);
+
+                        } else if (change.action === 'complete' || change.action === 'uncomplete') {
+                            console.log('📤 Обновление статуса цели в Supabase:', change.goalId);
+
+                            const { error } = await supabaseClient
+                                .from('goals')
+                                .update({
+                                    completed: change.action === 'complete',
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', change.goalId);
+
+                            if (error) throw error;
+                            successfulChanges.push(change);
+                        }
+
+                    } else if (change.type === 'goal_edit') {
+                        console.log('📤 Редактирование цели в Supabase:', change.goalId);
+
+                        const { error } = await supabaseClient
+                            .from('goals')
+                            .update({
+                                start_date: change.changes.startDate,
+                                end_date: change.changes.endDate,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', change.goalId);
+
+                        if (error) throw error;
+                        successfulChanges.push(change);
+                    }
+
+                } catch (error) {
+                    console.error('❌ Ошибка синхронизации изменения:', error);
+                    errors.push(change);
+                }
+            }
+
+            // Remove successful changes from queue
+            if (successfulChanges.length > 0) {
+                pendingChanges = pendingChanges.filter(c => !successfulChanges.includes(c));
+                saveToLocalStorage();
+                console.log(`✅ Синхронизировано ${successfulChanges.length} изменений в Supabase`);
+            }
+
+            if (errors.length > 0) {
+                console.warn(`⚠️ ${errors.length} изменений не удалось синхронизировать`);
+                throw new Error(`Failed to sync ${errors.length} changes`);
+            }
+        }
+
+        // ==========================================
+        // GOOGLE SHEETS (LEGACY - deprecated)
+        // ==========================================
+
         // Синхронизация
         async function syncWithGoogleSheets() {
             const button = document.getElementById('syncBtn');
@@ -2020,7 +2449,7 @@
 
         // Обработчики
         function setupEventListeners() {
-            document.getElementById('syncBtn').addEventListener('click', syncWithGoogleSheets);
+            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase); // Switched to Supabase
             document.getElementById('searchInput').addEventListener('input', renderAthletes);
 
             document.querySelectorAll('.chip').forEach(chip => {
@@ -2067,9 +2496,9 @@
                     group: athlete.group,
                     schedule: athlete.schedule,
                     performance: athlete.performance.map(p => ({
-                        'Подтягивания': p.pullUps,
-                        'Отжимания': p.pushUps,
-                        'Брусья': p.dips
+                        pullUps: p.pullUps,
+                        pushUps: p.pushUps,
+                        dips: p.dips
                     }))
                 };
 
