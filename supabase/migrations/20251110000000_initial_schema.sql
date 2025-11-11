@@ -103,15 +103,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Apply triggers to all tables
+DROP TRIGGER IF EXISTS update_athletes_updated_at ON public.athletes;
 CREATE TRIGGER update_athletes_updated_at BEFORE UPDATE ON public.athletes
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_exercises_updated_at ON public.exercises;
 CREATE TRIGGER update_exercises_updated_at BEFORE UPDATE ON public.exercises
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_goals_updated_at ON public.goals;
 CREATE TRIGGER update_goals_updated_at BEFORE UPDATE ON public.goals
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_performances_updated_at ON public.performances;
 CREATE TRIGGER update_performances_updated_at BEFORE UPDATE ON public.performances
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
