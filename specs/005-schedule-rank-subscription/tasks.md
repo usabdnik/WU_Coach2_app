@@ -41,7 +41,7 @@ File paths reference line ranges or sections within coach-pwa-app (7).html.
 - [X] T002 Add ALTER TABLE statements for schedule, rank_start, rank_end columns in migration
 - [X] T002b Add rank_history JSONB column to migration with default '[]'::jsonb
 - [X] T003 Add column comments for documentation in migration
-- [ ] T004 Deploy migration to Supabase with `supabase db push` (PENDING: Network connectivity issue)
+- [X] T004 Deploy migration to Supabase with `supabase db push`
 - [ ] T005 Verify columns added via Supabase dashboard → Database → athletes table
 
 ---
