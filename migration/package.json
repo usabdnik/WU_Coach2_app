@@ -1,0 +1,25 @@
+{
+  "name": "wu-coach-crm-import",
+  "version": "1.0.0",
+  "description": "CRM import script for syncing athletes from Google Sheets to Supabase",
+  "type": "module",
+  "main": "import-from-crm.js",
+  "scripts": {
+    "import": "node import-from-crm.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "supabase",
+    "crm",
+    "import",
+    "google-sheets"
+  ],
+  "author": "WU Coach Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "google-spreadsheet": "^4.1.2",
+    "google-auth-library": "^9.4.1",
+    "dotenv": "^16.3.1"
+  }
+}

@@ -1,0 +1,367 @@
+# CRM Import Script - Синхронизация клиентов из Google Sheets в Supabase
+
+Скрипт для автоматической синхронизации данных клиентов (ФИО, группа, статус активности) из Google Sheets CRM в базу данных Supabase.
+
+---
+
+## 📋 Что делает скрипт
+
+1. **Читает данные из Google Sheets** (ФИО клиентов, группы, даты окончания абонементов)
+2. **Определяет статус активности** (активен/неактивен) по наличию действующего абонемента
+3. **Сохраняет в Supabase** через Postgres функцию `save_athlete_with_validation()`
+4. **Логирует результаты** (успешные импорты, ошибки)
+
+---
+
+## 🚀 Быстрый старт
+
+### 1. Установка зависимостей
+
+```bash
+cd migration
+npm install
+```
+
+### 2. Настройка переменных окружения
+
+Создайте файл `.env` на основе `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Заполните переменные:
+
+```env
+SUPABASE_URL=https://mjkssesvhowmncyctmvs.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+GOOGLE_SHEETS_ID=1ABC...xyz
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+### 3. Запуск импорта
+
+```bash
+npm run import
+```
+
+Или напрямую:
+
+```bash
+node import-from-crm.js
+```
+
+---
+
+## ⚙️ Детальная настройка
+
+### Шаг 1: Supabase Service Role Key
+
+1. Откройте [Supabase Dashboard](https://app.supabase.com)
+2. Выберите ваш проект
+3. Перейдите в `Settings` → `API`
+4. Скопируйте **service_role** key (НЕ anon key!)
+
+⚠️ **ВАЖНО**: Service role key имеет полный доступ к БД, храните его в секрете!
+
+### Шаг 2: Google Sheets ID
+
+Откройте вашу таблицу Google Sheets с данными CRM.
+
+URL выглядит так:
+```
+https://docs.google.com/spreadsheets/d/{GOOGLE_SHEETS_ID}/edit
+```
+
+Скопируйте ID из URL.
+
+### Шаг 3: Google Service Account
+
+#### 3.1 Создание Service Account
+
+1. Откройте [Google Cloud Console](https://console.cloud.google.com)
+2. Перейдите в `IAM & Admin` → `Service Accounts`
+3. Нажмите `+ CREATE SERVICE ACCOUNT`
+4. Заполните:
+   - Name: `wu-coach-crm-import`
+   - Description: `Service account for CRM data import`
+5. Нажмите `CREATE AND CONTINUE`
+6. **Роль не нужна** (пропустите этот шаг)
+7. Нажмите `DONE`
+
+#### 3.2 Создание ключа доступа
+
+1. Найдите созданный Service Account в списке
+2. Нажмите на него → вкладка `KEYS`
+3. Нажмите `ADD KEY` → `Create new key`
+4. Выберите тип `JSON`
+5. Скачается файл `your-project-xxxxx.json`
+
+#### 3.3 Извлечение credentials
+
+Откройте скачанный JSON файл. Найдите два поля:
+
+```json
+{
+  "client_email": "wu-coach-crm-import@your-project.iam.gserviceaccount.com",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgk...\n-----END PRIVATE KEY-----\n"
+}
+```
+
+Скопируйте:
+- `client_email` → `GOOGLE_SERVICE_ACCOUNT_EMAIL` в .env
+- `private_key` → `GOOGLE_PRIVATE_KEY` в .env
+
+#### 3.4 Предоставление доступа к Google Sheets
+
+1. Откройте вашу таблицу Google Sheets
+2. Нажмите `Share` (Поделиться)
+3. Вставьте email service account: `wu-coach-crm-import@your-project.iam.gserviceaccount.com`
+4. Права: **Viewer** (достаточно для чтения)
+5. Нажмите `Send`
+
+---
+
+## 📊 Структура Google Sheets
+
+### Требуемые колонки
+
+Скрипт ожидает следующие колонки в первом листе таблицы:
+
+| Колонка | Обязательная | Описание |
+|---------|--------------|----------|
+| `ФИО` | ✅ Да | Полное имя клиента (Фамилия Имя Отчество) |
+| `Группа` | ❌ Нет | Группа: Начинающие, Средняя, Продвинутая, Элитная |
+| `Дата окончания абонемента` | ❌ Нет | Дата в формате YYYY-MM-DD или DD.MM.YYYY |
+| `Телефон` | ❌ Нет | Телефон клиента |
+| `Email` | ❌ Нет | Email клиента |
+
+### Пример таблицы
+
+| ФИО | Группа | Дата окончания абонемента | Телефон | Email |
+|-----|--------|---------------------------|---------|-------|
+| Иванов Петр Сергеевич | Начинающие | 2025-12-31 | +7 (999) 123-45-67 | ivanov@example.com |
+| Сидоров Алексей | Средняя | 2025-11-30 | +7 (999) 234-56-78 | sidorov@example.com |
+| Козлов Дмитрий | Продвинутая | 2024-10-15 | +7 (999) 345-67-89 | kozlov@example.com |
+
+### Определение статуса активности
+
+- **Активен** (`active`): Дата окончания абонемента >= сегодня
+- **Неактивен** (`inactive`): Дата окончания абонемента < сегодня ИЛИ не указана
+
+---
+
+## 🔄 Автоматизация синхронизации
+
+### Вариант 1: Cron job (Linux/macOS)
+
+Запускать каждую ночь в 3:00:
+
+```bash
+crontab -e
+```
+
+Добавить:
+
+```cron
+0 3 * * * cd /path/to/project/migration && node import-from-crm.js >> /var/log/crm-import.log 2>&1
+```
+
+### Вариант 2: GitHub Actions
+
+Создать `.github/workflows/crm-import.yml`:
+
+```yaml
+name: CRM Import
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Каждый день в 3:00 UTC
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd migration
+          npm install
+
+      - name: Run CRM import
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+        run: |
+          cd migration
+          node import-from-crm.js
+```
+
+Добавить секреты в GitHub:
+`Settings` → `Secrets and variables` → `Actions` → `New repository secret`
+
+### Вариант 3: Google Apps Script (рекомендуется)
+
+Если ваша CRM уже в Google Sheets, можно использовать встроенный триггер:
+
+```javascript
+// Google Apps Script (в самой таблице: Extensions → Apps Script)
+
+function syncToSupabase() {
+  const SUPABASE_URL = 'https://mjkssesvhowmncyctmvs.supabase.co';
+  const SUPABASE_SERVICE_KEY = 'your_service_key_here';
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Athletes');
+  const data = sheet.getDataRange().getValues();
+
+  // Пропускаем заголовок
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const fullName = row[0]; // Колонка A: ФИО
+    const group = row[1];    // Колонка B: Группа
+    const subscriptionEnd = row[2]; // Колонка C: Дата окончания
+
+    if (!fullName) continue;
+
+    const status = new Date(subscriptionEnd) >= new Date() ? 'active' : 'inactive';
+
+    const athleteData = {
+      name: fullName,
+      group: group || 'Начинающие',
+      status: status
+    };
+
+    // Вызов Supabase Postgres function
+    const url = `${SUPABASE_URL}/rest/v1/rpc/save_athlete_with_validation`;
+
+    const options = {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+      },
+      payload: JSON.stringify({ p_athlete_data: athleteData })
+    };
+
+    try {
+      UrlFetchApp.fetch(url, options);
+      Logger.log(`✅ ${fullName} synced`);
+    } catch (error) {
+      Logger.log(`❌ Error syncing ${fullName}: ${error}`);
+    }
+  }
+}
+
+// Настроить триггер: Edit → Current project's triggers → Add Trigger
+// Function: syncToSupabase
+// Event source: Time-driven
+// Type: Day timer
+// Time: 3am to 4am
+```
+
+---
+
+## 🐛 Устранение проблем
+
+### Ошибка: "SUPABASE_SERVICE_KEY not found"
+
+**Решение**: Проверьте, что файл `.env` создан и содержит все переменные.
+
+### Ошибка: "Error: No key or keyFile set"
+
+**Решение**: Проверьте формат `GOOGLE_PRIVATE_KEY` в `.env`:
+- Должен начинаться с `"-----BEGIN PRIVATE KEY-----\n`
+- Должен заканчиваться на `\n-----END PRIVATE KEY-----\n"`
+- Символы `\n` должны быть экранированы как `\\n` в .env файле
+
+### Ошибка: "Request had insufficient authentication scopes"
+
+**Решение**:
+1. Убедитесь, что Service Account имеет доступ к Google Sheets
+2. Проверьте, что таблица расшарена на email service account
+3. Проверьте scope в коде: `https://www.googleapis.com/auth/spreadsheets.readonly`
+
+### Ошибка: "Athlete name is required"
+
+**Решение**: В Google Sheets есть пустые строки. Скрипт автоматически пропускает их.
+
+### Ошибка: "Invalid athlete group"
+
+**Решение**: Проверьте названия групп в Google Sheets. Допустимые значения:
+- Начинающие
+- Средняя
+- Продвинутая
+- Элитная
+
+Если у вас другие названия, обновите `GROUP_MAPPING` в скрипте.
+
+---
+
+## 📝 Логирование
+
+Скрипт выводит подробные логи:
+
+```
+🚀 Запуск синхронизации из CRM...
+
+✅ Supabase client инициализирован
+✅ Google Sheets client инициализирован
+📥 Загрузка данных из Google Sheets...
+📊 Таблица: WU Coach CRM
+📋 Найдено 156 записей в CRM
+
+✅ Иванов Петр Сергеевич → active (Начинающие)
+✅ Сидоров Алексей → active (Средняя)
+❌ Ошибка обработки строки: Athlete name is required
+✅ Козлов Дмитрий → inactive (Продвинутая)
+...
+
+==================================================
+📊 РЕЗУЛЬТАТЫ СИНХРОНИЗАЦИИ
+==================================================
+✅ Успешно: 154
+❌ Ошибки: 2
+
+❌ Детали ошибок:
+  Строка 12 (undefined): Athlete name is required
+  Строка 89 (Иванова Анна): Invalid athlete group: Новички
+==================================================
+⚠️ Синхронизация завершена с ошибками
+```
+
+---
+
+## 🔒 Безопасность
+
+### Рекомендации:
+
+1. ✅ **НЕ коммитить** файл `.env` в git (уже в `.gitignore`)
+2. ✅ **Использовать** GitHub Secrets для CI/CD
+3. ✅ **Ограничить** доступ Service Account только к нужной таблице
+4. ✅ **Хранить** Service Role Key в секретном месте
+5. ✅ **Ротировать** ключи раз в 90 дней
+
+---
+
+## 📞 Поддержка
+
+Если возникли вопросы:
+1. Проверьте раздел "Устранение проблем"
+2. Проверьте логи скрипта
+3. Проверьте формат данных в Google Sheets
+
+---
+
+**Версия**: 1.0.0
+**Дата создания**: 2025-11-11
+**Автор**: WU Coach Team
