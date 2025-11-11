@@ -424,6 +424,8 @@ Before committing code changes:
 - localStorage (primary) + Google Apps Script Web App (secondary sync) (003-goal-fixes-and-creation)
 - JavaScript ES6+ (in-browser PWA), PostgreSQL 15+ (Supabase), SQL (schema/functions) + Supabase JS SDK v2.x (via CDN), localStorage API (browser native) (004-supabase-migration)
 - Supabase PostgreSQL (cloud-hosted), localStorage (primary offline storage) (004-supabase-migration)
+- JavaScript ES6+ (in-browser runtime, no Node.js/build step) + Supabase JS SDK v2.x (via CDN), localStorage API (native browser API) (005-schedule-rank-subscription)
+- Supabase PostgreSQL 15+ (remote primary), localStorage (offline cache) (005-schedule-rank-subscription)
 
 ## Recent Changes
 - 001-goal-editing-athlete-sync: Added Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + None (zero dependencies per constitution - no npm packages, frameworks, or libraries)

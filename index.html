@@ -630,6 +630,191 @@
             font-weight: 700;
             margin-left: 5px;
         }
+
+        /* ============================================================================
+           Schedule Management Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Schedule display in athlete profile */
+        .schedule-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #2a2d3a;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffffff;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .schedule-badge.self-reg {
+            background: #4c9eff;
+        }
+
+        /* Schedule editing form */
+        .schedule-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .schedule-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .schedule-type-btn {
+            flex: 1;
+            padding: 12px;
+            background: #2a2d3a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .schedule-type-btn.active {
+            background: #4c9eff;
+            border-color: #4c9eff;
+        }
+
+        .schedule-entry {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: #1a1d29;
+            border-radius: 8px;
+        }
+
+        .schedule-entry select,
+        .schedule-entry input[type="time"] {
+            flex: 1;
+            padding: 8px 12px;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .schedule-entry .remove-btn {
+            min-width: 44px;
+            height: 44px;
+            background: #dc2626;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .add-schedule-btn {
+            padding: 10px;
+            background: #2a2d3a;
+            border: 1px dashed #4c9eff;
+            border-radius: 8px;
+            color: #4c9eff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-schedule-btn:active {
+            transform: scale(0.98);
+            background: #1a1d29;
+        }
+
+        /* ============================================================================
+           Rank Management Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Rank dropdowns */
+        .rank-selector {
+            width: 100%;
+            padding: 12px;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .rank-selector option {
+            background: #1a1d29;
+            color: #ffffff;
+        }
+
+        .rank-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #2a2d3a;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        .rank-display.youth {
+            background: #fbbf24;
+            color: #000000;
+        }
+
+        .rank-display.adult {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .rank-display.elite {
+            background: #8b5cf6;
+            color: #ffffff;
+        }
+
+        .rank-progression {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #8b8f9f;
+        }
+
+        .rank-progression .arrow {
+            color: #4c9eff;
+        }
+
+        /* ============================================================================
+           Subscription Filter Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Subscription filter chip */
+        .subscription-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: #2a2d3a;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .subscription-filter.active {
+            background: #4c9eff;
+            border-color: #4c9eff;
+        }
+
+        .subscription-filter:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -1527,6 +1712,27 @@
         }
 
         // Детали ученика
+        // ============================================================================
+        // Schedule Management Functions (Feature: 005-schedule-rank-subscription)
+        // ============================================================================
+
+        // Format schedule for display in athlete profile
+        function formatScheduleDisplay(scheduleString) {
+            if (!scheduleString || scheduleString.trim() === '') {
+                return '<span style="color: #6b6f82;">(Не указано)</span>';
+            }
+
+            if (scheduleString === 'Самозапись') {
+                return '<span class="schedule-badge self-reg">📝 Самозапись</span>';
+            }
+
+            // Split fixed schedule: "Пн 18:00, Ср 19:00" → ["Пн 18:00", "Ср 19:00"]
+            return scheduleString
+                .split(', ')
+                .map(entry => `<span class="schedule-badge">🕐 ${entry}</span>`)
+                .join(' ');
+        }
+
         function showAthleteDetails(id) {
             const athlete = athletesData.find(a => a.id == id);
             if (!athlete) return;
@@ -1540,12 +1746,12 @@
             const allTime = allTimeRecords[athlete.id] || { pullUps: 0, pushUps: 0, dips: 0 };
 
             const detailsHTML = `
-                ${athlete.schedule ? `
-                    <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #fbbf24;">
-                        <div class="section-title" style="margin-bottom: 5px;">Расписание</div>
-                        <div style="color: #fff; font-size: 14px;">🕐 ${athlete.schedule}</div>
+                <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #4c9eff;">
+                    <div class="section-title" style="margin-bottom: 8px;">Расписание</div>
+                    <div style="color: #fff; font-size: 14px; line-height: 1.6;">
+                        ${formatScheduleDisplay(athlete.schedule)}
                     </div>
-                ` : ''}
+                </div>
 
                 <div class="section-title">Показатели сезона ${currentSeason.name}</div>
                 <div class="stats-mini" style="justify-content: space-around; margin-bottom: 15px;">
@@ -1830,7 +2036,10 @@
                 firstName: firstName,
                 name: athlete.name,
                 group: athlete.group_name || 'Начинающие',
-                schedule: '', // TODO: Add schedule field to Supabase schema
+                schedule: athlete.schedule || '', // NEW: Schedule field (format: "Пн 18:00, Ср 19:00" OR "Самозапись")
+                rank_start: athlete.rank_start || null, // NEW: Season start rank
+                rank_end: athlete.rank_end || null, // NEW: Season end rank
+                rank_history: athlete.rank_history || [], // NEW: Historical rank data (JSONB array)
                 active: athlete.status === 'active' ? 'Да' : 'Нет',
                 status: athlete.status,
                 season: athlete.season || currentSeason?.name,
