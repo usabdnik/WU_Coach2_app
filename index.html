@@ -992,6 +992,55 @@
         </div>
     </div>
 
+    <!-- Модальное окно: Редактировать расписание (Feature: 005-schedule-rank-subscription) -->
+    <div class="modal" id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="scheduleModalTitle">Расписание</div>
+                <button class="close-btn" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <form id="scheduleForm" onsubmit="saveSchedule(event)">
+                <input type="hidden" id="scheduleAthleteId">
+
+                <!-- Переключатель типа расписания -->
+                <div class="form-group">
+                    <label class="form-label">Тип расписания</label>
+                    <div class="schedule-type-selector">
+                        <button type="button" class="schedule-type-btn active" data-type="fixed" onclick="selectScheduleType('fixed')">
+                            📅 Фиксированное расписание
+                        </button>
+                        <button type="button" class="schedule-type-btn" data-type="self-reg" onclick="selectScheduleType('self-reg')">
+                            🔄 Самозапись
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Секция: Фиксированное расписание -->
+                <div id="fixedScheduleSection" class="schedule-section">
+                    <div class="form-group">
+                        <label class="form-label">Дни и время занятий</label>
+                        <div id="scheduleEntriesContainer"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addScheduleEntry()" style="width: 100%; margin-top: 10px;">
+                            ➕ Добавить время
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Секция: Самозапись -->
+                <div id="selfRegSection" class="schedule-section" style="display: none;">
+                    <div class="info-message" style="background: #2a2d3a; padding: 15px; border-radius: 8px; margin: 15px 0; color: #8b8f9f; font-size: 14px;">
+                        ℹ️ Спортсмен записывается на занятия самостоятельно через систему онлайн-записи.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         console.log('✅ JavaScript загружен');
 
@@ -1747,7 +1796,10 @@
 
             const detailsHTML = `
                 <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #4c9eff;">
-                    <div class="section-title" style="margin-bottom: 8px;">Расписание</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-title" style="margin: 0;">Расписание</div>
+                        <button onclick="openScheduleModal('${athlete.id}'); event.stopPropagation();" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #4c9eff;">✏️</button>
+                    </div>
                     <div style="color: #fff; font-size: 14px; line-height: 1.6;">
                         ${formatScheduleDisplay(athlete.schedule)}
                     </div>
@@ -2728,6 +2780,217 @@
 
         function closeModal(id) {
             document.getElementById(id).classList.remove('show');
+        }
+
+        // ==========================================
+        // SCHEDULE MODAL FUNCTIONS (Feature: 005-schedule-rank-subscription)
+        // ==========================================
+
+        // T022: Open schedule modal
+        function openScheduleModal(athleteId) {
+            console.log('📅 Opening schedule modal for athlete:', athleteId);
+            const athlete = athletesData.find(a => a.id == athleteId);
+            if (!athlete) return;
+
+            document.getElementById('scheduleAthleteId').value = athleteId;
+            document.getElementById('scheduleModalTitle').textContent = `Расписание: ${athlete.name}`;
+
+            // Determine schedule type and populate form
+            if (athlete.schedule === 'Самозапись') {
+                selectScheduleType('self-reg');
+            } else {
+                selectScheduleType('fixed');
+                // Parse existing schedule and render entries
+                if (athlete.schedule) {
+                    parseAndRenderSchedule(athlete.schedule);
+                } else {
+                    renderScheduleEntries([]);
+                }
+            }
+
+            document.getElementById('scheduleModal').classList.add('show');
+        }
+
+        // T023: Close schedule modal
+        function closeScheduleModal() {
+            console.log('📅 Closing schedule modal');
+            document.getElementById('scheduleModal').classList.remove('show');
+            // Clear form
+            document.getElementById('scheduleEntriesContainer').innerHTML = '';
+        }
+
+        // T024: Select schedule type (fixed or self-reg)
+        function selectScheduleType(type) {
+            console.log('📅 Selecting schedule type:', type);
+
+            // Update button states
+            document.querySelectorAll('.schedule-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            // Toggle sections
+            if (type === 'fixed') {
+                document.getElementById('fixedScheduleSection').style.display = 'block';
+                document.getElementById('selfRegSection').style.display = 'none';
+            } else {
+                document.getElementById('fixedScheduleSection').style.display = 'none';
+                document.getElementById('selfRegSection').style.display = 'block';
+            }
+        }
+
+        // T025: Render schedule entries
+        function renderScheduleEntries(entries) {
+            console.log('📅 Rendering schedule entries:', entries);
+            const container = document.getElementById('scheduleEntriesContainer');
+
+            if (entries.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b6f82; font-size: 14px;">Нет расписания. Нажмите "Добавить время".</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map((entry, index) => `
+                <div class="schedule-entry" style="margin-bottom: 10px;">
+                    <select class="schedule-day" data-index="${index}">
+                        <option value="Пн" ${entry.day === 'Пн' ? 'selected' : ''}>Понедельник</option>
+                        <option value="Вт" ${entry.day === 'Вт' ? 'selected' : ''}>Вторник</option>
+                        <option value="Ср" ${entry.day === 'Ср' ? 'selected' : ''}>Среда</option>
+                        <option value="Чт" ${entry.day === 'Чт' ? 'selected' : ''}>Четверг</option>
+                        <option value="Пт" ${entry.day === 'Пт' ? 'selected' : ''}>Пятница</option>
+                        <option value="Сб" ${entry.day === 'Сб' ? 'selected' : ''}>Суббота</option>
+                        <option value="Вс" ${entry.day === 'Вс' ? 'selected' : ''}>Воскресенье</option>
+                    </select>
+                    <input type="time" class="schedule-time" data-index="${index}" value="${entry.time || ''}" required>
+                    <button type="button" class="remove-btn" onclick="removeScheduleEntry(${index})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // T026: Add new schedule entry
+        function addScheduleEntry() {
+            console.log('📅 Adding schedule entry');
+            const currentEntries = getScheduleEntries();
+            currentEntries.push({ day: 'Пн', time: '18:00' });
+            renderScheduleEntries(currentEntries);
+        }
+
+        // T027: Remove schedule entry
+        function removeScheduleEntry(index) {
+            console.log('📅 Removing schedule entry:', index);
+            const currentEntries = getScheduleEntries();
+            currentEntries.splice(index, 1);
+            renderScheduleEntries(currentEntries);
+        }
+
+        // T028: Get schedule entries from form
+        function getScheduleEntries() {
+            const container = document.getElementById('scheduleEntriesContainer');
+            const entries = [];
+
+            container.querySelectorAll('.schedule-entry').forEach(entry => {
+                const day = entry.querySelector('.schedule-day').value;
+                const time = entry.querySelector('.schedule-time').value;
+                if (day && time) {
+                    entries.push({ day, time });
+                }
+            });
+
+            return entries;
+        }
+
+        // Helper: Parse schedule string into entries
+        function parseAndRenderSchedule(scheduleString) {
+            if (!scheduleString || scheduleString === 'Самозапись') {
+                renderScheduleEntries([]);
+                return;
+            }
+
+            // Parse format: "Пн 18:00, Ср 19:00, Пт 18:00"
+            const entries = scheduleString.split(',').map(entry => {
+                const parts = entry.trim().split(' ');
+                if (parts.length === 2) {
+                    return { day: parts[0], time: parts[1] };
+                }
+                return null;
+            }).filter(e => e !== null);
+
+            renderScheduleEntries(entries);
+        }
+
+        // T029: Save schedule
+        async function saveSchedule(event) {
+            event.preventDefault();
+            console.log('📅 Saving schedule');
+
+            const athleteId = document.getElementById('scheduleAthleteId').value;
+            const athlete = athletesData.find(a => a.id == athleteId);
+            if (!athlete) return;
+
+            // Determine schedule value
+            let scheduleValue = '';
+            const activeType = document.querySelector('.schedule-type-btn.active').dataset.type;
+
+            if (activeType === 'self-reg') {
+                scheduleValue = 'Самозапись';
+            } else {
+                // Fixed schedule: format as "Пн 18:00, Ср 19:00"
+                const entries = getScheduleEntries();
+                if (entries.length === 0) {
+                    alert('⚠️ Добавьте хотя бы одно время занятия или выберите "Самозапись"');
+                    return;
+                }
+                scheduleValue = entries.map(e => `${e.day} ${e.time}`).join(', ');
+            }
+
+            console.log('📅 Schedule value:', scheduleValue);
+
+            // Update local data
+            athlete.schedule = scheduleValue;
+
+            // Add to pending changes for Supabase sync
+            pendingChanges.push({
+                type: 'schedule',
+                athleteId: athleteId,
+                schedule: scheduleValue
+            });
+
+            saveToLocalStorage();
+
+            // Try to sync immediately if online
+            if (navigator.onLine) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('athletes')
+                        .update({ schedule: scheduleValue })
+                        .eq('id', athleteId);
+
+                    if (error) {
+                        console.error('❌ Supabase sync error:', error);
+                    } else {
+                        console.log('✅ Schedule synced to Supabase');
+                        // Remove from pending changes
+                        pendingChanges = pendingChanges.filter(c =>
+                            !(c.type === 'schedule' && c.athleteId === athleteId)
+                        );
+                        saveToLocalStorage();
+                    }
+                } catch (err) {
+                    console.error('❌ Supabase sync failed:', err);
+                }
+            }
+
+            // Update UI
+            renderAthletes();
+            closeScheduleModal();
+
+            // Refresh athlete details if modal is open
+            if (document.getElementById('athleteModal').classList.contains('show')) {
+                showAthleteDetails(athleteId);
+            }
+
+            updatePendingIndicator();
+            alert('✅ Расписание сохранено локально!\n\n' +
+                  (navigator.onLine ? 'Синхронизировано с сервером.' : 'Будет синхронизировано при подключении к интернету.'));
         }
 
         function formatDate(dateStr) {
