@@ -1,25 +1,23 @@
 {
-  "name": "wu-coach-crm-import",
-  "version": "1.0.0",
-  "description": "CRM import script for syncing athletes from Google Sheets to Supabase",
+  "name": "wu-coach-moyklass-import",
+  "version": "2.0.0",
+  "description": "Moyklass CRM import script for syncing athletes to Supabase",
   "type": "module",
-  "main": "import-from-crm.js",
+  "main": "import-from-moyklass.js",
   "scripts": {
-    "import": "node import-from-crm.js",
+    "import": "node import-from-moyklass.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "supabase",
     "crm",
-    "import",
-    "google-sheets"
+    "moyklass",
+    "import"
   ],
   "author": "WU Coach Team",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
-    "google-spreadsheet": "^4.1.2",
-    "google-auth-library": "^9.4.1",
     "dotenv": "^16.3.1"
   }
 }

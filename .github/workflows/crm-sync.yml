@@ -28,16 +28,14 @@ jobs:
           cd migration
           npm ci
 
-      - name: 🔄 Run CRM sync
+      - name: 🔄 Run Moyklass CRM sync
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
-          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
-          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          MOYKLASS_API_KEY: ${{ secrets.MOYKLASS_API_KEY }}
         run: |
           cd migration
-          node import-from-crm.js
+          node import-from-moyklass.js
 
       - name: ✅ Sync complete
         if: success()
