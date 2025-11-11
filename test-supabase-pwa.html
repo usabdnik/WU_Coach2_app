@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase PWA Integration Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #0f1117;
+            color: #fff;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #4c9eff; }
+        h2 { color: #8b8f9f; font-size: 18px; margin-top: 30px; }
+        .test-section {
+            background: #1a1d29;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .status {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .status.success { background: #4ade80; color: #000; }
+        .status.error { background: #dc2626; color: #fff; }
+        .status.pending { background: #fbbf24; color: #000; }
+        pre {
+            background: #2a2d3a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        button {
+            background: #4c9eff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover { background: #3a8de6; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .count { color: #4c9eff; font-weight: 700; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Supabase PWA Integration Test</h1>
+
+    <div class="test-section">
+        <h2>1. SDK Initialization</h2>
+        <div id="sdk-status" class="status pending">Pending...</div>
+        <pre id="sdk-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Database Connection Test</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connection-status"></div>
+        <pre id="connection-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Fetch Athletes</h2>
+        <button onclick="testFetchAthletes()">Fetch Athletes</button>
+        <div id="athletes-status"></div>
+        <pre id="athletes-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Fetch Exercises</h2>
+        <button onclick="testFetchExercises()">Fetch Exercises</button>
+        <div id="exercises-status"></div>
+        <pre id="exercises-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Fetch Goals (with JOINs)</h2>
+        <button onclick="testFetchGoals()">Fetch Goals</button>
+        <div id="goals-status"></div>
+        <pre id="goals-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Fetch Performances</h2>
+        <button onclick="testFetchPerformances()">Fetch Performances</button>
+        <div id="performances-status"></div>
+        <pre id="performances-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Full PWA Sync Simulation</h2>
+        <button onclick="testFullSync()">Run Full Sync</button>
+        <div id="sync-status"></div>
+        <pre id="sync-output"></pre>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://mjkssesvhowmncyctmvs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNjU2MzgsImV4cCI6MjA3NTc0MTYzOH0.jRoTOGiwjF79DdTFmerhpBFqu6tmHob3jwGeHJxiuO0';
+
+        let supabaseClient;
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Supabase SDK not loaded');
+                }
+
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+                document.getElementById('sdk-status').className = 'status success';
+                document.getElementById('sdk-status').textContent = '✅ SDK Loaded Successfully';
+                document.getElementById('sdk-output').textContent = JSON.stringify({
+                    url: SUPABASE_URL,
+                    sdkVersion: 'v2.x',
+                    clientInitialized: !!supabaseClient
+                }, null, 2);
+
+                console.log('✅ Supabase client initialized:', supabaseClient);
+            } catch (error) {
+                document.getElementById('sdk-status').className = 'status error';
+                document.getElementById('sdk-status').textContent = '❌ SDK Failed';
+                document.getElementById('sdk-output').textContent = error.message;
+                console.error('❌ SDK initialization failed:', error);
+            }
+        });
+
+        // Test connection
+        async function testConnection() {
+            const statusEl = document.getElementById('connection-status');
+            const outputEl = document.getElementById('connection-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Testing...</div>';
+
+                // Simple query to test connection
+                const { data, error } = await supabaseClient
+                    .from('athletes')
+                    .select('count')
+                    .limit(1);
+
+                if (error) throw error;
+
+                statusEl.innerHTML = '<div class="status success">✅ Connection Successful</div>';
+                outputEl.textContent = 'Database is accessible via Supabase client';
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Connection Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Connection test failed:', error);
+            }
+        }
+
+        // Test fetch athletes
+        async function testFetchAthletes() {
+            const statusEl = document.getElementById('athletes-status');
+            const outputEl = document.getElementById('athletes-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Fetching...</div>';
+
+                const { data, error } = await supabaseClient
+                    .from('athletes')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                statusEl.innerHTML = `<div class="status success">✅ Found <span class="count">${data.length}</span> athletes</div>`;
+                outputEl.textContent = JSON.stringify(data, null, 2);
+                console.log('Athletes:', data);
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Fetch Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Fetch athletes failed:', error);
+            }
+        }
+
+        // Test fetch exercises
+        async function testFetchExercises() {
+            const statusEl = document.getElementById('exercises-status');
+            const outputEl = document.getElementById('exercises-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Fetching...</div>';
+
+                const { data, error } = await supabaseClient
+                    .from('exercises')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                statusEl.innerHTML = `<div class="status success">✅ Found <span class="count">${data.length}</span> exercises</div>`;
+                outputEl.textContent = JSON.stringify(data, null, 2);
+                console.log('Exercises:', data);
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Fetch Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Fetch exercises failed:', error);
+            }
+        }
+
+        // Test fetch goals with JOINs
+        async function testFetchGoals() {
+            const statusEl = document.getElementById('goals-status');
+            const outputEl = document.getElementById('goals-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Fetching...</div>';
+
+                const { data, error } = await supabaseClient
+                    .from('goals')
+                    .select(`
+                        *,
+                        athletes!inner(name),
+                        exercises!inner(name)
+                    `);
+
+                if (error) throw error;
+
+                statusEl.innerHTML = `<div class="status success">✅ Found <span class="count">${data.length}</span> goals</div>`;
+                outputEl.textContent = JSON.stringify(data, null, 2);
+                console.log('Goals:', data);
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Fetch Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Fetch goals failed:', error);
+            }
+        }
+
+        // Test fetch performances
+        async function testFetchPerformances() {
+            const statusEl = document.getElementById('performances-status');
+            const outputEl = document.getElementById('performances-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Fetching...</div>';
+
+                const { data, error } = await supabaseClient
+                    .from('performances')
+                    .select(`
+                        *,
+                        exercises!inner(name, type)
+                    `);
+
+                if (error) throw error;
+
+                statusEl.innerHTML = `<div class="status success">✅ Found <span class="count">${data.length}</span> performances</div>`;
+                outputEl.textContent = JSON.stringify(data, null, 2);
+                console.log('Performances:', data);
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Fetch Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Fetch performances failed:', error);
+            }
+        }
+
+        // Test full sync (simulates PWA behavior)
+        async function testFullSync() {
+            const statusEl = document.getElementById('sync-status');
+            const outputEl = document.getElementById('sync-output');
+
+            try {
+                statusEl.innerHTML = '<div class="status pending">Syncing...</div>';
+                const startTime = Date.now();
+
+                // Fetch all data in parallel
+                const [athletesRes, exercisesRes, goalsRes, performancesRes] = await Promise.all([
+                    supabaseClient.from('athletes').select('*').order('name', { ascending: true }),
+                    supabaseClient.from('exercises').select('*').order('name', { ascending: true }),
+                    supabaseClient.from('goals').select('*, athletes!inner(name), exercises!inner(name)'),
+                    supabaseClient.from('performances').select('*, exercises!inner(name, type)')
+                ]);
+
+                // Check for errors
+                if (athletesRes.error) throw athletesRes.error;
+                if (exercisesRes.error) throw exercisesRes.error;
+                if (goalsRes.error) throw goalsRes.error;
+                if (performancesRes.error) throw performancesRes.error;
+
+                const duration = Date.now() - startTime;
+                const summary = {
+                    duration: `${duration}ms`,
+                    athletes: athletesRes.data.length,
+                    exercises: exercisesRes.data.length,
+                    goals: goalsRes.data.length,
+                    performances: performancesRes.data.length,
+                    totalRecords: athletesRes.data.length + exercisesRes.data.length + goalsRes.data.length + performancesRes.data.length
+                };
+
+                statusEl.innerHTML = `<div class="status success">✅ Sync Complete in ${duration}ms</div>`;
+                outputEl.textContent = JSON.stringify(summary, null, 2);
+                console.log('Full sync complete:', summary);
+            } catch (error) {
+                statusEl.innerHTML = '<div class="status error">❌ Sync Failed</div>';
+                outputEl.textContent = JSON.stringify(error, null, 2);
+                console.error('Full sync failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>

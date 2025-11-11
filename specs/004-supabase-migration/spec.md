@@ -141,7 +141,7 @@ Development team needs to consolidate duplicate code that currently exists in tw
 - **FR-002**: System MUST migrate all exercise definitions from Google Sheets to Supabase exercises table with correct categorization
 - **FR-003**: System MUST migrate all goals from Google Sheets to Supabase goals table with athlete relationships preserved
 - **FR-004**: System MUST create Supabase schema with tables: athletes, exercises, goals, performances
-- **FR-005**: System MUST implement Row Level Security (RLS) policies for data access control
+- **FR-005**: System MUST implement Row Level Security (RLS) policies for data access control (MVP: anon key has full read/write access to all tables, service role key has admin access; see contracts/rls-policies.md for complete policy specifications)
 - **FR-006**: System MUST maintain offline-first PWA functionality using localStorage with Supabase sync
 - **FR-007**: System MUST provide schema-first development workflow with .specify/supabase/schema.sql as single source of truth
 - **FR-008**: System MUST integrate Serena MCP for schema file reading and project memory

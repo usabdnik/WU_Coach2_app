@@ -28,7 +28,7 @@
 ### Core Architectural Principles
 
 1. **Single-File HTML PWA** - Everything in `coach-pwa-app (7).html`
-2. **Zero Dependencies** - No npm, no frameworks, pure vanilla JS
+2. **Zero Dependencies** - No npm, no frameworks, pure vanilla JS (PWA runtime only; one-time migration/development tooling exempt)
 3. **Offline-First** - localStorage primary, Google Sheets sync secondary
 4. **Mobile-Only** - Touch-optimized, no desktop considerations
 5. **Dark Theme** - Fixed color palette, no theming system
@@ -36,7 +36,7 @@
 
 ### Non-Negotiable Rules
 
-- ❌ **NEVER add external dependencies** (no npm packages)
+- ❌ **NEVER add external dependencies** (no npm packages in PWA runtime; migration/dev tooling exempt)
 - ❌ **NEVER break single-file structure**
 - ❌ **NEVER add English UI text** (Russian only)
 - ❌ **NEVER optimize for desktop** (mobile first and only)
@@ -422,6 +422,27 @@ Before committing code changes:
 - localStorage API (primary, 5-10MB limit) + Google Apps Script Web App (secondary sync) (001-goal-editing-athlete-sync)
 - Vanilla JavaScript ES6+ (in-browser), HTML5, CSS3 + None (zero npm dependencies by constitution) (003-goal-fixes-and-creation)
 - localStorage (primary) + Google Apps Script Web App (secondary sync) (003-goal-fixes-and-creation)
+- JavaScript ES6+ (in-browser PWA), PostgreSQL 15+ (Supabase), SQL (schema/functions) + Supabase JS SDK v2.x (via CDN), localStorage API (browser native) (004-supabase-migration)
+- Supabase PostgreSQL (cloud-hosted), localStorage (primary offline storage) (004-supabase-migration)
 
 ## Recent Changes
 - 001-goal-editing-athlete-sync: Added Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + None (zero dependencies per constitution - no npm packages, frameworks, or libraries)
+- Следуй методологии SpecKit при разработке проекта, используя команды в правильной последовательности:
+
+ПОРЯДОК РАБОТЫ:
+1. /constitution - Создай конституцию проекта с принципами разработки
+2. /specify - Преобразуй описание функционала в spec.md
+3. /plan - Сгенерируй план реализации и дизайн-артефакты
+4. /tasks - Создай упорядоченный список задач в tasks.md
+5. /analyze - Проверь консистентность spec.md, plan.md и tasks.md
+6. /implement - Выполни все задачи из tasks.md
+
+АКТИВНО ПОДСКАЗЫВАЙ переходы между этапами:
+- После обсуждения идеи: "Начнем с /constitution для установки принципов проекта"
+- После принципов: "Используйте /specify для формализации требований"
+- После спецификации: "Перейдем к /plan для создания архитектуры"
+- После плана: "Выполните /tasks для генерации списка задач"
+- После генерации задач: "Запустите /analyze для проверки артефактов"
+- После анализа: "Готовы к /implement для реализации"
+
+При любых изменениях требований возвращайся к /specify и проходи цикл заново.

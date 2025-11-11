@@ -16,7 +16,7 @@
 ## Path Conventions
 
 Per plan.md:
-- **Single-file PWA**: `coach-pwa-app.html` (repository root)
+- **Single-file PWA**: `coach-pwa-app (7).html` (repository root)
 - **Supabase files**: `.specify/supabase/` (schema, functions, policies)
 - **Migration scripts**: `migration/` (one-time executables)
 - **MCP context**: `.specify/memory/SUPABASE_CONTEXT.md`
@@ -32,8 +32,10 @@ Per plan.md:
 - [ ] T002 [P] Create directory structure: .specify/supabase/, .specify/memory/, migration/, .claude/commands/
 - [ ] T003 [P] Create .specify/memory/SUPABASE_CONTEXT.md with project URL and API keys from Supabase dashboard
 - [ ] T004 Create .specify/supabase/schema.sql from specs/004-supabase-migration/data-model.md (4 tables: athletes, exercises, goals, performances)
+- [ ] T004a Add updated_at TIMESTAMP DEFAULT NOW() column to all tables in schema.sql (athletes, exercises, goals, performances) for optimistic locking per spec.md edge case solution
+- [ ] T004b Create trigger function and triggers in schema.sql to auto-update updated_at on row UPDATE for conflict detection
 - [ ] T005 [P] Create .specify/supabase/rls_policies.sql from specs/004-supabase-migration/contracts/rls-policies.md
-- [ ] T006 [P] Create .specify/supabase/functions.sql from specs/004-supabase-migration/contracts/rpc-functions.md (5 functions)
+- [ ] T006 [P] Create .specify/supabase/functions.sql from specs/004-supabase-migration/contracts/postgres-functions.md (5 functions)
 - [ ] T007 Deploy .specify/supabase/schema.sql to Supabase via SQL Editor in dashboard
 - [ ] T008 Deploy .specify/supabase/rls_policies.sql to Supabase via SQL Editor
 - [ ] T009 Deploy .specify/supabase/functions.sql to Supabase via SQL Editor
@@ -72,7 +74,7 @@ Per plan.md:
 - [ ] T020 [US1] Export Google Sheets athletes data to CSV: File → Download → Comma-separated values → save as data/athletes.csv
 - [ ] T021 [P] [US1] Export Google Sheets exercises data to CSV → save as data/exercises.csv
 - [ ] T022 [P] [US1] Export Google Sheets goals data to CSV → save as data/goals.csv
-- [ ] T023 [P] [US1] Export Google Sheets performances data to CSV (if exists) → save as data/performances.csv
+- [ ] T023 [P] [US1] Export Google Sheets performances data to CSV → save as data/performances.csv (required per FR-004 - 4 tables mandatory)
 - [ ] T024 [US1] Create migration/export-from-sheets.js to convert CSV to JSON with UUID generation (athletes, exercises, goals, performances)
 - [ ] T025 [US1] Run migration/export-from-sheets.js: node migration/export-from-sheets.js → generates data/athletes.json, data/exercises.json, data/goals.json
 - [ ] T026 [US1] Create migration/import-to-supabase.js using Supabase service role key to batch insert JSON data
@@ -81,14 +83,14 @@ Per plan.md:
 - [ ] T029 [US1] Run migration/verify-integrity.js: node migration/verify-integrity.js → verify 100% data integrity (FR-020)
 - [ ] T030 [US1] Test rollback mechanism: backup current Supabase data → run migration/rollback.sql → verify empty tables → restore from backup
 - [ ] T031 [US1] Keep Google Sheets read-only for 30 days as backup (manual - update sheet permissions)
-- [ ] T032 [US1] Update coach-pwa-app.html: add Supabase CDN script tag before </head>: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> (FR-016)
-- [ ] T033 [US1] Update coach-pwa-app.html: initialize Supabase client in <script> section with SUPABASE_URL and SUPABASE_ANON_KEY from .specify/memory/SUPABASE_CONTEXT.md
-- [ ] T034 [US1] Update coach-pwa-app.html: create loadDataFromSupabase() function to fetch goals and athletes via supabase.from().select()
-- [ ] T035 [US1] Update coach-pwa-app.html: create syncToSupabase() function using supabase.rpc('sync_offline_changes', { changes: pendingChanges }) (FR-019)
-- [ ] T036 [US1] Update coach-pwa-app.html: replace Google Apps Script sync calls with Supabase sync in existing sync functions
-- [ ] T037 [US1] Update coach-pwa-app.html: add error handling for Supabase connection failures with specific error types: (1) NetworkError → retry with exponential backoff (3 attempts), then fallback to localStorage-only mode, (2) AuthError → clear credentials + prompt re-authentication, (3) RLSError → log policy violation + show user-friendly message, (4) 500 Internal Server Error → log for debugging + fallback to localStorage (Edge case: offline mode)
-- [ ] T038 [US1] Test PWA offline-first flow: open coach-pwa-app.html in Chrome DevTools device mode → enable airplane mode → add goal → verify saves to localStorage → disable airplane mode → click sync → verify uploads to Supabase (FR-006)
-- [ ] T039 [US1] Test PWA on Safari iOS: deploy coach-pwa-app.html to test server → open in Safari → test offline mode → test sync
+- [ ] T032 [US1] Update coach-pwa-app (7).html: add Supabase CDN script tag before </head>: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> (FR-016)
+- [ ] T033 [US1] Update coach-pwa-app (7).html: initialize Supabase client in <script> section with SUPABASE_URL and SUPABASE_ANON_KEY from .specify/memory/SUPABASE_CONTEXT.md
+- [ ] T034 [US1] Update coach-pwa-app (7).html: create loadDataFromSupabase() function to fetch goals and athletes via supabase.from().select()
+- [ ] T035 [US1] Update coach-pwa-app (7).html: create syncToSupabase() function using supabase.rpc('sync_offline_changes', { changes: pendingChanges }) with conflict detection (fetch updated_at before UPDATE, compare with local timestamp, show conflict warning if mismatch) per spec.md edge case solution (FR-019)
+- [ ] T036 [US1] Update coach-pwa-app (7).html: replace Google Apps Script sync calls with Supabase sync in existing sync functions
+- [ ] T037 [US1] Update coach-pwa-app (7).html: add error handling for Supabase connection failures with specific error types: (1) NetworkError → retry with exponential backoff (3 attempts), then fallback to localStorage-only mode, (2) AuthError → clear credentials + prompt re-authentication, (3) RLSError → log policy violation + show user-friendly message, (4) 500 Internal Server Error → log for debugging + fallback to localStorage (Edge case: offline mode)
+- [ ] T038 [US1] Test PWA offline-first flow: open coach-pwa-app (7).html in Chrome DevTools device mode → enable airplane mode → add goal → verify saves to localStorage → disable airplane mode → click sync → verify uploads to Supabase (FR-006)
+- [ ] T039 [US1] Test PWA on Safari iOS: deploy coach-pwa-app (7).html to test server → open in Safari → test offline mode → test sync
 - [ ] T040 [P] [US1] Test PWA on Chrome Android: open deployed app → test offline mode → test sync
 - [ ] T041 [US1] Verify all 20 functional requirements met: check FR-001 to FR-020 against implementation
 - [ ] T042 [US1] Verify success criteria SC-001: 100% data migration with zero data loss (checksum match)
@@ -138,13 +140,14 @@ Per plan.md:
 
 - [ ] T061 [US3] Identify duplicate functions in Google Apps Script: review import.gs and webapp.gs → list all duplicate function names
 - [ ] T062 [US3] Verify Postgres functions consolidate duplicates: check that get_current_season(), calculate_season_stats(), sync_offline_changes(), save_athlete_with_validation(), get_athlete_performances() cover all duplicate logic
-- [ ] T063 [US3] Update PWA to use Postgres functions: replace client-side season calculation with supabase.rpc('get_current_season') in coach-pwa-app.html
-- [ ] T064 [P] [US3] Update PWA to use Postgres functions: replace client-side stats calculation with supabase.rpc('calculate_season_stats', { athlete_id }) in coach-pwa-app.html
+- [ ] T063 [US3] Update PWA to use Postgres functions: replace client-side season calculation with supabase.rpc('get_current_season') in coach-pwa-app (7).html
+- [ ] T063a [US3] Verify season logic correctness: test get_current_season() Postgres function returns correct season for September (new season start), December, March, June, August (season end) to confirm September-August academic year cycle per FR-018 and constitution requirement
+- [ ] T064 [P] [US3] Update PWA to use Postgres functions: replace client-side stats calculation with supabase.rpc('calculate_season_stats', { athlete_id }) in coach-pwa-app (7).html
 - [ ] T065 [US3] Create CRM import script using Postgres functions: create migration/import-from-crm.js that calls supabase.rpc('save_athlete_with_validation', { athlete_data })
-- [ ] T066 [US3] Test PWA uses Postgres functions: verify all database operations in coach-pwa-app.html call supabase.rpc() instead of duplicating logic
+- [ ] T066 [US3] Test PWA uses Postgres functions: verify all database operations in coach-pwa-app (7).html call supabase.rpc() instead of duplicating logic
 - [ ] T067 [P] [US3] Test CRM import uses Postgres functions: run migration/import-from-crm.js → verify calls save_athlete_with_validation() successfully
 - [ ] T068 [US3] Test shared logic update: modify get_current_season() in .specify/supabase/functions.sql → deploy to Supabase → verify both PWA and CRM use new logic without code changes
-- [ ] T069 [US3] Search codebase for duplicate function names: grep -r "function.*name" coach-pwa-app.html migration/*.js → verify zero duplicates (FR-013)
+- [ ] T069 [US3] Search codebase for duplicate function names: grep -r "function.*name" "coach-pwa-app (7).html" migration/*.js → verify zero duplicates (FR-013)
 - [ ] T070 [US3] Verify success criteria SC-003: Zero duplicate function definitions exist (grep search returns 0 matches)
 - [ ] T071 [US3] Update constitution.md to document Supabase Postgres functions as shared logic pattern
 - [ ] T072 [P] [US3] Update ULTRATHINK_MODE.md to document MCP usage patterns for Supabase development
