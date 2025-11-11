@@ -43,6 +43,7 @@ yarn-error.log*
 # Node modules (if ever added - currently zero dependencies)
 node_modules/
 package-lock.json
+!migration/package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -57,3 +58,4 @@ coverage/
 
 # Misc
 .cache/
+.env.supabase
