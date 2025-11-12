@@ -6,7 +6,7 @@
 ✅ **Phase 3 Complete**: Schedule display in athlete profile (US1)
 ✅ **Phase 4 Complete**: Schedule editing modal (US3)
 ✅ **Phase 6 Complete**: Rank start recording (US4) - TESTED & WORKING ✅
-✅ **Phase 7 Complete**: Rank end recording (US5) - CODE COMPLETE, NEEDS TESTING 🧪
+✅ **Phase 7 Complete**: Rank end recording (US5) - TESTED & WORKING ✅
 🔄 **Phase 5, 8 Pending**: US2 (subscription filter), Polish & documentation
 
 ## What Was Done
@@ -58,7 +58,7 @@
 8. Offline-first: saves to localStorage, syncs to Supabase
 9. Manual testing completed: rank persists across refresh ✅
 
-### Phase 7: User Story 5 - Rank End Recording (T066-T070) ✅ CODE
+### Phase 7: User Story 5 - Rank End Recording (T066-T076) ✅
 1. Added rank_end dropdown to recordsModal HTML (line 914-928) (T066-T067)
 2. formatRankDisplay() already supports progression arrow (T068) ✅
 3. Athlete profile already shows rank progression (line 1895) (T069) ✅
@@ -67,7 +67,13 @@
 6. Updated syncPendingChangesToSupabase() to sync rank_end (lines 2380-2383) (T070)
 7. transformSupabaseAthlete() already handles rank_end (line 2186) ✅
 8. Offline-first: saves to localStorage, syncs to Supabase
-9. **NEEDS MANUAL TESTING (T071-T076)** 🧪
+9. **Manual testing completed (T071-T076)** ✅
+   - T071: Rank progression tested ✅
+   - T072: Rank maintenance tested ✅
+   - T073: End rank only tested ✅
+   - T074: Progression arrow display verified ✅
+   - T075: Single rank display verified ✅
+   - T076: NULL/empty selection verified ✅
 
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
@@ -76,14 +82,8 @@
 
 ## Next Steps
 
-### Phase 7 Manual Testing (T071-T076) 🧪
-Phase 7 CODE COMPLETE ✅. Ready for manual testing:
-- T071: Test rank progression (e.g., "I юношеский" → "III взрослый")
-- T072: Test rank maintenance (rank_end = rank_start, no arrow)
-- T073: Test rank_end only (no rank_start set)
-- T074: Verify progression arrow displays (e.g., "🥉 I юношеский ➡️ 🥈 III взрослый")
-- T075: Verify single rank displays without arrow
-- T076: Verify both fields allow NULL/empty selection
+### Phase 7 Manual Testing (T071-T076) ✅ COMPLETE
+Phase 7 TESTED & WORKING ✅ All test scenarios passed!
 
 ### Phase 5: User Story 2 - Subscription Filter (T037-T053)
 After Phase 7 testing complete, implement subscription filtering (17 tasks)
@@ -102,24 +102,25 @@ Say to Claude:
 ```
 Продолжаю feature 005-schedule-rank-subscription.
 
-Phase 7 CODE COMPLETE (53/95 tasks, 56%).
-Нужно мануальное тестирование (T071-T076).
+Phase 7 COMPLETE (59/95 tasks, 62%).
+Готов к Phase 5 (Subscription Filter) или Phase 8 (Polish & Documentation).
 
 Файлы:
 - specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
+- specs/005-schedule-rank-subscription/tasks.md
 - index.html (основной файл)
 
-Откройте index.html в Safari iOS или Chrome, протестируйте rank_end по инструкциям в SESSION_CONTEXT.md.
+Что делаем дальше?
 ```
 
-## Progress: 53/95 tasks (56%)
+## Progress: 59/95 tasks (62%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
 - [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 17 tasks
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
-- [~] Phase 7: User Story 5 (T066-T076) - Rank end recording - 5/11 tasks (CODE COMPLETE, NEEDS TESTING)
+- [X] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks ✅ [Manual tests passed!]
 - [ ] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks
 
 ## Key Files
