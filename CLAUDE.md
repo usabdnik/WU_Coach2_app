@@ -97,6 +97,124 @@ User Action
 
 ---
 
+## 🎯 Feature 005: Schedule Management & Athletic Ranks
+
+**Status**: Phase 8 (Polish & Documentation) ✅ Core Implementation Complete
+
+**Branch**: `005-schedule-rank-subscription`
+
+### Implemented Features (Phases 1-7 ✅)
+
+#### 📅 **Schedule Management** (US1 + US3 - COMPLETE)
+- **Display**: Athletes' training schedules visible in profile view (line ~1801-1815: formatScheduleDisplay)
+- **Two Schedule Types**:
+  - **Fixed Schedule**: "Пн 18:00, Ср 19:00" format with day + time entries
+  - **Self-Registration**: "Самозапись" literal for flexible scheduling
+- **Editing Modal**: Full CRUD interface with type selector (line ~2910-3123: schedule functions)
+- **Validation**: Format validation for day (Пн-Вс) and time (HH:MM) before saving (line ~3077-3090)
+- **Offline-First**: Saves to localStorage, syncs to Supabase when online
+- **Functions**:
+  - `openScheduleModal(athleteId)` - line ~2910
+  - `closeScheduleModal()` - line ~2936
+  - `selectScheduleType(type)` - line ~2944
+  - `renderScheduleEntries(entries)` - line ~2964
+  - `addScheduleEntry()` - line ~2991
+  - `removeScheduleEntry(index)` - line ~2999
+  - `saveSchedule(event)` - line ~3055 (with validation + error handling)
+  - `formatScheduleDisplay(scheduleString)` - line ~1801
+
+#### 🏆 **Athletic Rank Tracking** (US4 + US5 - COMPLETE)
+- **Season Start Rank** (`rank_start`): Record initial athletic rank at season beginning
+- **Season End Rank** (`rank_end`): Record final rank for outcome tracking
+- **11 Rank Levels**: Youth (III, II, I) → Adult (III, II, I) → Elite (КМС, МС, МСМК) + "Без разряда" + empty
+- **Progression Display**: Shows rank advancement with arrow (🥉 → 🥇) when both set
+- **Visual Icons**: Emoji mapping based on rank level (🔰 🥉 🥈 🥇 🏆)
+- **Validation**: Ensures rank values match allowed list before saving (line ~2862-2872)
+- **Offline-First**: Integrated into athlete data sync workflow
+- **Functions**:
+  - `formatRankDisplay(rankStart, rankEnd)` - line ~1838 (with progression logic)
+  - `getRankIcon(rank)` - line ~1818 (emoji mapping)
+  - `editRecords(id)` - line ~2070 (loads rank data with logging)
+  - `recordsForm submit` - line ~2851+ (saves + validates rank data)
+
+#### 🔄 **Subscription Filter** (US2 - PENDING Phase 5)
+- **Status**: Not yet implemented (T037-T053 pending)
+- **Purpose**: Filter athletes by active subscription during current season
+- **Data Source**: TBD (Moyklass API OR Supabase subscriptions table)
+
+### Database Schema (Supabase)
+
+**Migration**: `supabase/migrations/20251111000002_add_schedule_rank_fields.sql`
+
+```sql
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS schedule TEXT DEFAULT NULL;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS rank_start TEXT DEFAULT NULL;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS rank_end TEXT DEFAULT NULL;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS rank_history JSONB DEFAULT '[]'::jsonb;
+
+COMMENT ON COLUMN athletes.schedule IS 'Training schedule: "Пн 18:00, Ср 19:00" OR "Самозапись"';
+COMMENT ON COLUMN athletes.rank_start IS 'Athletic rank at season start';
+COMMENT ON COLUMN athletes.rank_end IS 'Athletic rank at season end';
+COMMENT ON COLUMN athletes.rank_history IS 'Historical rank progression data (JSONB array)';
+```
+
+### Phase 8 Improvements (Current) ✅
+
+**Completed**:
+- ✅ T077-T078: Console logging with emoji for schedule + rank operations
+- ✅ T079-T080: Error handling for Supabase failures (schedule + rank)
+- ✅ T081: Moyklass API error handling (N/A - Phase 5 not implemented)
+- ✅ T082: Schedule format validation (day: Пн-Вс, time: HH:MM regex)
+- ✅ T083: Rank value validation (against 11 allowed ranks)
+- ✅ T084-T087: Manual testing tasks (requires mobile devices - deferred)
+
+**Remaining**:
+- ⏳ T089: Update CLAUDE.md (this section)
+- ⏳ T090: Run update-agent-context.sh
+- ⏳ T091-T093: Code cleanup (BEM naming, Russian language, dark theme)
+- ⏳ T094-T095: Performance testing + final verification
+
+### Key Line References (index.html)
+
+| Feature | Function/Section | Line Range | Status |
+|---------|-----------------|------------|--------|
+| Schedule Display | `formatScheduleDisplay()` | ~1801-1815 | ✅ |
+| Schedule Modal | `openScheduleModal()` | ~2910-2932 | ✅ |
+| Schedule Save | `saveSchedule()` | ~3055-3142 | ✅ + Validation + Error Handling |
+| Schedule Validation | Format check | ~3077-3090 | ✅ T082 |
+| Rank Display | `formatRankDisplay()` | ~1838-1870 | ✅ |
+| Rank Icons | `getRankIcon()` | ~1818-1835 | ✅ |
+| Rank Edit | `editRecords()` | ~2070-2116 | ✅ + Logging |
+| Rank Save | recordsForm submit | ~2851-2920 | ✅ + Validation |
+| Rank Validation | Value check | ~2862-2872 | ✅ T083 |
+| Supabase Sync | `syncPendingChangesToSupabase()` | ~2352-2554 | ✅ + Error Logging |
+
+### Testing Notes
+
+**Manual Testing Completed** (Phases 3, 4, 6, 7):
+- ✅ Schedule display with fixed schedule format
+- ✅ Schedule display with self-registration mode
+- ✅ Schedule editing (add/remove/save entries)
+- ✅ Rank progression display (start → end)
+- ✅ Rank persistence across refresh
+- ✅ Offline localStorage persistence
+- ✅ Online Supabase sync
+
+**Pending Mobile Testing** (T086-T087):
+- Safari iOS: Touch interactions (44x44px targets)
+- Chrome Android: Touch interactions + performance
+
+### Future Enhancements (Phase 7.5 - Deferred)
+
+**Historical Rank Tracking** (T076a-T076i):
+- Multi-season rank progression history
+- `rank_history` JSONB field (already in schema ✅)
+- Season-end automatic archival (Sept 1 trigger)
+- Historical view modal with progression table
+- Not yet implemented (low priority)
+
+---
+
 ## 🎨 Design System
 
 ### Color Palette (Dark Theme)

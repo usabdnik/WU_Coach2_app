@@ -1836,6 +1836,7 @@
 
         // T056: Format rank display for athlete profile
         function formatRankDisplay(rankStart, rankEnd) {
+            console.log('🏆 Форматирование отображения разрядов:', rankStart, '→', rankEnd);
             const hasStart = rankStart && rankStart !== '';
             const hasEnd = rankEnd && rankEnd !== '';
 
@@ -2079,6 +2080,7 @@
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
             document.getElementById('recordsRankStart').value = athlete.rank_start || '';
             document.getElementById('recordsRankEnd').value = athlete.rank_end || '';
+            console.log('🏆 Загрузка разрядов:', athlete.rank_start, '→', athlete.rank_end);
 
             // Создаем мапу месяцев для быстрого доступа
             const performanceMap = {};
@@ -2375,11 +2377,13 @@
                         // Add rank_start if present in change data
                         if ('rank_start' in change.data) {
                             updateData.rank_start = change.data.rank_start;
+                            console.log('🏆 Синхронизация rank_start:', change.data.rank_start);
                         }
 
                         // Add rank_end if present in change data
                         if ('rank_end' in change.data) {
                             updateData.rank_end = change.data.rank_end;
+                            console.log('🏆 Синхронизация rank_end:', change.data.rank_end);
                         }
 
                         console.log('🏆 Обновление данных спортсмена:', updateData);
@@ -2534,6 +2538,15 @@
 
                 } catch (error) {
                     console.error('❌ Ошибка синхронизации изменения:', error);
+                    // Log specific error details for rank data
+                    if (change.type === 'athlete' && ('rank_start' in change.data || 'rank_end' in change.data)) {
+                        console.error('🏆 Ошибка синхронизации разрядов:', {
+                            athleteId: change.athleteId,
+                            rank_start: change.data.rank_start,
+                            rank_end: change.data.rank_end,
+                            error: error.message
+                        });
+                    }
                     errors.push(change);
                 }
             }
@@ -2844,8 +2857,21 @@
                 athlete.group = document.getElementById('recordsGroup').value;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
                 const rankStartValue = document.getElementById('recordsRankStart').value;
-                athlete.rank_start = rankStartValue === '' ? null : rankStartValue;
                 const rankEndValue = document.getElementById('recordsRankEnd').value;
+
+                // T083: Validate rank values
+                const validRanks = ['', 'Без разряда', 'III юношеский разряд', 'II юношеский разряд', 'I юношеский разряд',
+                                   'III взрослый разряд', 'II взрослый разряд', 'I взрослый разряд', 'КМС', 'МС', 'МСМК'];
+                if (!validRanks.includes(rankStartValue)) {
+                    alert(`⚠️ Неверный разряд (начало сезона): ${rankStartValue}`);
+                    return;
+                }
+                if (!validRanks.includes(rankEndValue)) {
+                    alert(`⚠️ Неверный разряд (конец сезона): ${rankEndValue}`);
+                    return;
+                }
+
+                athlete.rank_start = rankStartValue === '' ? null : rankStartValue;
                 athlete.rank_end = rankEndValue === '' ? null : rankEndValue;
 
                 console.log('🏆 Сохранение разрядов:', athlete.rank_start, '→', athlete.rank_end);
@@ -3020,6 +3046,7 @@
 
         // Helper: Parse schedule string into entries
         function parseAndRenderSchedule(scheduleString) {
+            console.log('📅 Parsing schedule string:', scheduleString);
             if (!scheduleString || scheduleString === 'Самозапись') {
                 renderScheduleEntries([]);
                 return;
@@ -3059,6 +3086,22 @@
                     alert('⚠️ Добавьте хотя бы одно время занятия или выберите "Самозапись"');
                     return;
                 }
+
+                // T082: Validate schedule format
+                const validDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                const timeRegex = /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/;
+
+                for (const entry of entries) {
+                    if (!validDays.includes(entry.day)) {
+                        alert(`⚠️ Неверный день недели: ${entry.day}`);
+                        return;
+                    }
+                    if (!timeRegex.test(entry.time)) {
+                        alert(`⚠️ Неверный формат времени: ${entry.time}. Используйте формат ЧЧ:ММ (например, 18:00)`);
+                        return;
+                    }
+                }
+
                 scheduleValue = entries.map(e => `${e.day} ${e.time}`).join(', ');
             }
 
@@ -3077,6 +3120,7 @@
             saveToLocalStorage();
 
             // Try to sync immediately if online
+            let syncSuccess = false;
             if (navigator.onLine) {
                 try {
                     const { data, error } = await supabaseClient
@@ -3086,8 +3130,10 @@
 
                     if (error) {
                         console.error('❌ Supabase sync error:', error);
+                        alert('⚠️ Расписание сохранено локально, но не удалось синхронизировать с сервером.\n\nДанные будут синхронизированы позже.');
                     } else {
                         console.log('✅ Schedule synced to Supabase');
+                        syncSuccess = true;
                         // Remove from pending changes
                         pendingChanges = pendingChanges.filter(c =>
                             !(c.type === 'schedule' && c.athleteId === athleteId)
@@ -3096,6 +3142,7 @@
                     }
                 } catch (err) {
                     console.error('❌ Supabase sync failed:', err);
+                    alert('⚠️ Расписание сохранено локально, но произошла ошибка синхронизации.\n\nДанные будут синхронизированы позже.');
                 }
             }
 
@@ -3109,8 +3156,10 @@
             }
 
             updatePendingIndicator();
-            alert('✅ Расписание сохранено локально!\n\n' +
-                  (navigator.onLine ? 'Синхронизировано с сервером.' : 'Будет синхронизировано при подключении к интернету.'));
+            if (!navigator.onLine || syncSuccess) {
+                alert('✅ Расписание сохранено локально!\n\n' +
+                      (syncSuccess ? 'Синхронизировано с сервером.' : 'Будет синхронизировано при подключении к интернету.'));
+            }
         }
 
         function formatDate(dateStr) {
