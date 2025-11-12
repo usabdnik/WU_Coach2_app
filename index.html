@@ -896,6 +896,22 @@
                     <textarea class="form-textarea" id="recordsSchedule" placeholder="Например: ПН СР ПТ 18:00 / Вт Чт 9:00"></textarea>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Разряд (начало сезона)</label>
+                    <select class="form-select" id="recordsRankStart">
+                        <option value="">(Не указано)</option>
+                        <option value="Без разряда">Без разряда</option>
+                        <option value="III юношеский разряд">III юношеский разряд</option>
+                        <option value="II юношеский разряд">II юношеский разряд</option>
+                        <option value="I юношеский разряд">I юношеский разряд</option>
+                        <option value="III взрослый разряд">III взрослый разряд</option>
+                        <option value="II взрослый разряд">II взрослый разряд</option>
+                        <option value="I взрослый разряд">I взрослый разряд</option>
+                        <option value="КМС">КМС</option>
+                        <option value="МС">МС</option>
+                        <option value="МСМК">МСМК</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Подтягивания</label>
                     <div class="month-grid" id="pullUpsGrid"></div>
                 </div>
@@ -1782,6 +1798,55 @@
                 .join(' ');
         }
 
+        // T057: Get rank icon emoji based on rank level
+        function getRankIcon(rank) {
+            if (!rank || rank === '' || rank === 'Без разряда') {
+                return '🔰'; // Beginner shield
+            }
+            if (rank.includes('юношеский')) {
+                return '🥉'; // Bronze for youth ranks
+            }
+            if (rank.includes('III взрослый') || rank.includes('II взрослый')) {
+                return '🥈'; // Silver for adult 3rd/2nd
+            }
+            if (rank.includes('I взрослый') || rank === 'КМС') {
+                return '🥇'; // Gold for adult 1st and CMS
+            }
+            if (rank === 'МС' || rank === 'МСМК') {
+                return '🏆'; // Trophy for Master of Sport
+            }
+            return '🔰'; // Default
+        }
+
+        // T056: Format rank display for athlete profile
+        function formatRankDisplay(rankStart, rankEnd) {
+            const hasStart = rankStart && rankStart !== '';
+            const hasEnd = rankEnd && rankEnd !== '';
+
+            if (!hasStart && !hasEnd) {
+                return '<span style="color: #6b6f82;">(Не указано)</span>';
+            }
+
+            if (hasStart && hasEnd) {
+                // Show progression: "Start ➡️ End"
+                const startIcon = getRankIcon(rankStart);
+                const endIcon = getRankIcon(rankEnd);
+                return `<span style="color: #fff;">${startIcon} ${rankStart} ➡️ ${endIcon} ${rankEnd}</span>`;
+            }
+
+            if (hasStart) {
+                const icon = getRankIcon(rankStart);
+                return `<span style="color: #fff;">${icon} ${rankStart}</span>`;
+            }
+
+            if (hasEnd) {
+                const icon = getRankIcon(rankEnd);
+                return `<span style="color: #fff;">${icon} ${rankEnd}</span>`;
+            }
+
+            return '<span style="color: #6b6f82;">(Не указано)</span>';
+        }
+
         function showAthleteDetails(id) {
             const athlete = athletesData.find(a => a.id == id);
             if (!athlete) return;
@@ -1802,6 +1867,16 @@
                     </div>
                     <div style="color: #fff; font-size: 14px; line-height: 1.6;">
                         ${formatScheduleDisplay(athlete.schedule)}
+                    </div>
+                </div>
+
+                <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #fbbf24;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-title" style="margin: 0;">Спортивный разряд</div>
+                        <button onclick="editRecords('${athlete.id}'); event.stopPropagation();" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #fbbf24;">✏️</button>
+                    </div>
+                    <div style="color: #fff; font-size: 14px; line-height: 1.6;">
+                        ${formatRankDisplay(athlete.rank_start, athlete.rank_end)}
                     </div>
                 </div>
 
@@ -1986,6 +2061,7 @@
             document.getElementById('recordsAthleteId').value = athlete.id;
             document.getElementById('recordsGroup').value = athlete.group;
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
+            document.getElementById('recordsRankStart').value = athlete.rank_start || '';
 
             // Создаем мапу месяцев для быстрого доступа
             const performanceMap = {};
@@ -2728,9 +2804,13 @@
                 const athlete = athletesData.find(a => a.id == id);
                 if (!athlete) return;
 
-                // Обновляем группу и расписание
+                // Обновляем группу, расписание и разряд
                 athlete.group = document.getElementById('recordsGroup').value;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
+                const rankStartValue = document.getElementById('recordsRankStart').value;
+                athlete.rank_start = rankStartValue === '' ? null : rankStartValue;
+
+                console.log('🏆 Сохранение разряда:', athlete.rank_start);
 
                 // Собираем performance
                 athlete.performance = MONTHS.map(month => ({
@@ -2756,6 +2836,7 @@
                     id: athlete.id,
                     group: athlete.group,
                     schedule: athlete.schedule,
+                    rank_start: athlete.rank_start,
                     performance: athlete.performance.map(p => ({
                         pullUps: p.pullUps,
                         pushUps: p.pushUps,
