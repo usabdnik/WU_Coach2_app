@@ -912,6 +912,22 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Разряд (конец сезона)</label>
+                    <select class="form-select" id="recordsRankEnd">
+                        <option value="">(Не указано)</option>
+                        <option value="Без разряда">Без разряда</option>
+                        <option value="III юношеский разряд">III юношеский разряд</option>
+                        <option value="II юношеский разряд">II юношеский разряд</option>
+                        <option value="I юношеский разряд">I юношеский разряд</option>
+                        <option value="III взрослый разряд">III взрослый разряд</option>
+                        <option value="II взрослый разряд">II взрослый разряд</option>
+                        <option value="I взрослый разряд">I взрослый разряд</option>
+                        <option value="КМС">КМС</option>
+                        <option value="МС">МС</option>
+                        <option value="МСМК">МСМК</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Подтягивания</label>
                     <div class="month-grid" id="pullUpsGrid"></div>
                 </div>
@@ -2062,6 +2078,7 @@
             document.getElementById('recordsGroup').value = athlete.group;
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
             document.getElementById('recordsRankStart').value = athlete.rank_start || '';
+            document.getElementById('recordsRankEnd').value = athlete.rank_end || '';
 
             // Создаем мапу месяцев для быстрого доступа
             const performanceMap = {};
@@ -2358,6 +2375,11 @@
                         // Add rank_start if present in change data
                         if ('rank_start' in change.data) {
                             updateData.rank_start = change.data.rank_start;
+                        }
+
+                        // Add rank_end if present in change data
+                        if ('rank_end' in change.data) {
+                            updateData.rank_end = change.data.rank_end;
                         }
 
                         console.log('🏆 Обновление данных спортсмена:', updateData);
@@ -2818,13 +2840,15 @@
                 const athlete = athletesData.find(a => a.id == id);
                 if (!athlete) return;
 
-                // Обновляем группу, расписание и разряд
+                // Обновляем группу, расписание и разряды
                 athlete.group = document.getElementById('recordsGroup').value;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
                 const rankStartValue = document.getElementById('recordsRankStart').value;
                 athlete.rank_start = rankStartValue === '' ? null : rankStartValue;
+                const rankEndValue = document.getElementById('recordsRankEnd').value;
+                athlete.rank_end = rankEndValue === '' ? null : rankEndValue;
 
-                console.log('🏆 Сохранение разряда:', athlete.rank_start);
+                console.log('🏆 Сохранение разрядов:', athlete.rank_start, '→', athlete.rank_end);
 
                 // Собираем performance
                 athlete.performance = MONTHS.map(month => ({
@@ -2851,6 +2875,7 @@
                     group: athlete.group,
                     schedule: athlete.schedule,
                     rank_start: athlete.rank_start,
+                    rank_end: athlete.rank_end,
                     performance: athlete.performance.map(p => ({
                         pullUps: p.pullUps,
                         pushUps: p.pushUps,
