@@ -6,7 +6,8 @@
 ✅ **Phase 3 Complete**: Schedule display in athlete profile (US1)
 ✅ **Phase 4 Complete**: Schedule editing modal (US3)
 ✅ **Phase 6 Complete**: Rank start recording (US4) - TESTED & WORKING ✅
-🔄 **Phase 5, 7-8 Pending**: US2 (subscription filter), US5 (rank end), Polish
+✅ **Phase 7 Complete**: Rank end recording (US5) - CODE COMPLETE, NEEDS TESTING 🧪
+🔄 **Phase 5, 8 Pending**: US2 (subscription filter), Polish & documentation
 
 ## What Was Done
 
@@ -57,20 +58,38 @@
 8. Offline-first: saves to localStorage, syncs to Supabase
 9. Manual testing completed: rank persists across refresh ✅
 
+### Phase 7: User Story 5 - Rank End Recording (T066-T070) ✅ CODE
+1. Added rank_end dropdown to recordsModal HTML (line 914-928) (T066-T067)
+2. formatRankDisplay() already supports progression arrow (T068) ✅
+3. Athlete profile already shows rank progression (line 1895) (T069) ✅
+4. Updated editRecords() to load rank_end into form (line 2081) (T070)
+5. Updated recordsForm submit to persist rank_end (lines 2843-2844, 2873) (T070)
+6. Updated syncPendingChangesToSupabase() to sync rank_end (lines 2380-2383) (T070)
+7. transformSupabaseAthlete() already handles rank_end (line 2186) ✅
+8. Offline-first: saves to localStorage, syncs to Supabase
+9. **NEEDS MANUAL TESTING (T071-T076)** 🧪
+
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
-- Latest commit: 06675a5 Fix: Add schedule and rank_start to Supabase sync
+- Latest commit: 7c8e21d Add: Phase 7 (US5) - Season End Rank Recording
 - Clean working tree (all changes committed)
 
 ## Next Steps
 
-### Phase 7: User Story 5 - Rank End Recording (T066-T076)
-Phase 6 COMPLETE and tested ✅. Ready to start Phase 7:
-- Add rank_end dropdown to recordsModal (similar to rank_start)
-- Update formatRankDisplay() to show progression arrow when both ranks set
-- Update profile display to show rank progression (start → end)
-- Update save logic to persist rank_end to Supabase
-- Manual testing (11 tasks total)
+### Phase 7 Manual Testing (T071-T076) 🧪
+Phase 7 CODE COMPLETE ✅. Ready for manual testing:
+- T071: Test rank progression (e.g., "I юношеский" → "III взрослый")
+- T072: Test rank maintenance (rank_end = rank_start, no arrow)
+- T073: Test rank_end only (no rank_start set)
+- T074: Verify progression arrow displays (e.g., "🥉 I юношеский ➡️ 🥈 III взрослый")
+- T075: Verify single rank displays without arrow
+- T076: Verify both fields allow NULL/empty selection
+
+### Phase 5: User Story 2 - Subscription Filter (T037-T053)
+After Phase 7 testing complete, implement subscription filtering (17 tasks)
+
+### Phase 8: Polish & Documentation (T077-T095)
+Final polish, validation, testing, documentation (19 tasks)
 
 ### For New Session:
 ```bash
@@ -83,29 +102,28 @@ Say to Claude:
 ```
 Продолжаю feature 005-schedule-rank-subscription.
 
-Phases 1-4, 6 завершены (42/95 tasks).
-Ready for Phase 7: Rank End Recording (T066-T076).
+Phase 7 CODE COMPLETE (53/95 tasks, 56%).
+Нужно мануальное тестирование (T071-T076).
 
-Файлы для справки:
+Файлы:
 - specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
-- specs/005-schedule-rank-subscription/tasks.md (прогресс 42/95)
 - index.html (основной файл)
 
-Начинай с Phase 7.
+Откройте index.html в Safari iOS или Chrome, протестируйте rank_end по инструкциям в SESSION_CONTEXT.md.
 ```
 
-## Progress: 48/95 tasks (51%)
+## Progress: 53/95 tasks (56%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
 - [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 17 tasks
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
-- [ ] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks
+- [~] Phase 7: User Story 5 (T066-T076) - Rank end recording - 5/11 tasks (CODE COMPLETE, NEEDS TESTING)
 - [ ] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks
 
 ## Key Files
-- `coach-pwa-app (7).html` - Main PWA (single-file architecture)
+- `index.html` - Main PWA (single-file architecture)
 - `specs/005-schedule-rank-subscription/tasks.md` - Task tracking
 - `specs/005-schedule-rank-subscription/plan.md` - Design decisions
 - `supabase/migrations/20251111000002_add_schedule_rank_fields.sql` - Applied migration
