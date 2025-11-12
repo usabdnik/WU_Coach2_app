@@ -5,7 +5,8 @@
 ✅ **Phase 2 Complete**: Foundational styles and data extensions
 ✅ **Phase 3 Complete**: Schedule display in athlete profile (US1)
 ✅ **Phase 4 Complete**: Schedule editing modal (US3)
-🔄 **Phase 5-8 Pending**: US2, US4, US5, Polish
+✅ **Phase 6 Complete**: Rank start recording (US4)
+🔄 **Phase 5, 7-8 Pending**: US2 (subscription filter), US5 (rank end), Polish
 
 ## What Was Done
 
@@ -45,12 +46,37 @@
 5. Offline-first: saves to localStorage, syncs to Supabase when online
 6. Format: "Пн 18:00, Ср 19:00" OR "Самозапись"
 
+### Phase 6: User Story 4 - Rank Start Recording (T054-T065)
+1. Added rank_start dropdown to recordsModal HTML (9 ranks + "Без разряда" + empty)
+2. Created formatRankDisplay(rankStart, rankEnd) for visual display with progression
+3. Created getRankIcon(rank) for emoji mapping (🔰 🥉 🥈 🥇 🏆)
+4. Updated showAthleteDetails() to display rank section with edit button
+5. Updated editRecords() to populate rank_start from athlete data
+6. Updated recordsForm submit to persist rank_start to Supabase
+7. Offline-first: saves to localStorage, syncs to Supabase
+8. transformSupabaseAthlete() already includes rank_start, rank_end, rank_history
+
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
-- Latest commit: 8f9ed24 Add: Phase 4 (US3) - Schedule Editing Modal
+- Latest commit: f73a2e9 Add: Phase 6 (US4) - Season Start Rank Recording
 - Clean working tree (all changes committed)
 
 ## Next Steps
+
+### Manual Testing (T061-T065)
+Phase 6 implementation complete. Ready for manual testing:
+1. T061: Test saving rank_start with "III юношеский разряд"
+2. T062: Test saving rank_start with "КМС"
+3. T063: Test saving rank_start with "Без разряда"
+4. T064: Test empty selection (NULL)
+5. T065: Verify rank displays correctly in athlete profile with icons
+
+### Testing Instructions:
+1. Open index.html in browser
+2. Select any athlete → Edit показатели (📊 button)
+3. Select different ranks from "Разряд (начало сезона)" dropdown
+4. Save and verify display in athlete profile
+5. Check "Спортивный разряд" section shows correct emoji + text
 
 ### For New Session:
 ```bash
@@ -63,24 +89,25 @@ Say to Claude:
 ```
 Продолжаю feature 005-schedule-rank-subscription.
 
-Phase 1 завершена - миграция задеплоена.
-Начинаем Phase 2-8 из tasks.md.
+Phases 1-4, 6 завершены (42/95 tasks).
+Ready for Phase 7: Rank End Recording (T066-T076).
 
 Файлы для справки:
-- specs/005-schedule-rank-subscription/tasks.md (прогресс 29/95)
-- specs/005-schedule-rank-subscription/plan.md
-- coach-pwa-app (7).html (основной файл)
+- specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
+- specs/005-schedule-rank-subscription/tasks.md (прогресс 42/95)
+- index.html (основной файл)
 
-Начинай с Phase 2.
+Начинай с Phase 7.
 ```
 
-## Progress: 36/95 tasks (38%)
+## Progress: 42/95 tasks (44%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
 - [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 17 tasks
-- [ ] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks
+- [X] Phase 6: User Story 4 (T054-T060) - Rank start recording - 6 tasks ✅ [Implementation complete]
+- [ ] Phase 6 Testing: (T061-T065) - Manual testing - 5 tasks [Ready for testing]
 - [ ] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks
 - [ ] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks
 
