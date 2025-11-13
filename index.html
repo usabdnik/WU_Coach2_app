@@ -1096,6 +1096,8 @@
         let currentFilter = 'all';
         let currentSeason = null;
         let allTimeRecords = {};
+        let isSubscriptionFilterActive = false;
+        let subscriptionCache = null; // {data: [...], timestamp: Date}
 
         // Определение текущего сезона
         function getCurrentSeason() {
@@ -1692,8 +1694,135 @@
             }
         }
 
+        // ============================================================================
+        // Subscription Filter Functions (Feature: 005-schedule-rank-subscription)
+        // ============================================================================
+
+        // T038: Toggle subscription filter on/off
+        function toggleSubscriptionFilter() {
+            isSubscriptionFilterActive = !isSubscriptionFilterActive;
+
+            const chip = document.getElementById('subscriptionFilterChip');
+            if (isSubscriptionFilterActive) {
+                chip.classList.add('active');
+                console.log('📋 Фильтр подписок активирован');
+            } else {
+                chip.classList.remove('active');
+                console.log('📋 Фильтр подписок деактивирован');
+            }
+
+            renderAthletes();
+        }
+
+        // T040: Get subscription cache from localStorage
+        function getSubscriptionCache() {
+            try {
+                const cached = localStorage.getItem('subscriptionCache');
+                if (!cached) return null;
+
+                const parsed = JSON.parse(cached);
+                console.log('📦 Кэш подписок загружен:', parsed.data?.length || 0, 'записей');
+                return parsed;
+            } catch (e) {
+                console.error('❌ Ошибка чтения кэша подписок:', e);
+                return null;
+            }
+        }
+
+        // T041: Set subscription cache to localStorage
+        function setSubscriptionCache(data) {
+            try {
+                const cacheObj = {
+                    data: data,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('subscriptionCache', JSON.stringify(cacheObj));
+                subscriptionCache = cacheObj;
+                console.log('✅ Кэш подписок сохранен:', data.length, 'записей');
+            } catch (e) {
+                console.error('❌ Ошибка сохранения кэша подписок:', e);
+            }
+        }
+
+        // T042: Check if cache is stale (>24 hours old)
+        function isCacheStale(cacheObj) {
+            if (!cacheObj || !cacheObj.timestamp) return true;
+
+            const now = new Date();
+            const cacheTime = new Date(cacheObj.timestamp);
+            const hoursDiff = (now - cacheTime) / (1000 * 60 * 60);
+
+            const isStale = hoursDiff > 24;
+            console.log(`⏰ Кэш подписок: ${isStale ? 'устарел' : 'актуален'} (${hoursDiff.toFixed(1)}ч)`);
+            return isStale;
+        }
+
+        // T043: Fetch subscription history from Supabase
+        async function fetchSubscriptionHistory(seasonStart, seasonEnd) {
+            try {
+                console.log('🔄 Загрузка подписок с', seasonStart.toISOString().split('T')[0],
+                           'по', seasonEnd.toISOString().split('T')[0]);
+
+                const { data, error } = await supabase
+                    .rpc('get_subscriptions_for_season', {
+                        p_season_start: seasonStart.toISOString().split('T')[0],
+                        p_season_end: seasonEnd.toISOString().split('T')[0]
+                    });
+
+                if (error) {
+                    console.error('❌ Ошибка запроса подписок:', error);
+                    return [];
+                }
+
+                console.log('✅ Загружено подписок:', data?.length || 0);
+                return data || [];
+            } catch (e) {
+                console.error('❌ Ошибка fetchSubscriptionHistory:', e);
+                return [];
+            }
+        }
+
+        // T039 + T044: Filter athletes by subscription history
+        async function filterBySubscriptionHistory(athletes) {
+            if (!isSubscriptionFilterActive) {
+                return athletes; // Filter not active, return all
+            }
+
+            // Get current season dates (Sept 1 - Aug 31)
+            const season = getCurrentSeason();
+            console.log('📅 Фильтрация по сезону:', season.name);
+
+            // Check cache first
+            let subscriptions = [];
+            const cache = getSubscriptionCache();
+
+            if (cache && !isCacheStale(cache)) {
+                // Use cached data
+                subscriptions = cache.data;
+                console.log('📦 Использую кэш подписок');
+            } else {
+                // Fetch fresh data from Supabase
+                subscriptions = await fetchSubscriptionHistory(season.startDate, season.endDate);
+                if (subscriptions.length > 0) {
+                    setSubscriptionCache(subscriptions);
+                }
+            }
+
+            // Filter athletes: show only those with subscriptions in current season
+            const athleteIdsWithSubscription = new Set(
+                subscriptions.map(sub => sub.athlete_id)
+            );
+
+            const filtered = athletes.filter(athlete =>
+                athleteIdsWithSubscription.has(athlete.id)
+            );
+
+            console.log('📋 Отфильтровано:', filtered.length, 'из', athletes.length, 'спортсменов');
+            return filtered;
+        }
+
         // Отображение учеников
-        function renderAthletes() {
+        async function renderAthletes() {
             const container = document.getElementById('athletesList');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
@@ -1727,12 +1856,16 @@
                 return;
             }
 
+            // Apply search and group filters first
             let filtered = athletesData.filter(a => {
                 const matchesSearch = a.lastName.toLowerCase().includes(searchTerm) ||
                                     a.firstName.toLowerCase().includes(searchTerm);
                 const matchesFilter = currentFilter === 'all' || a.group === currentFilter;
                 return matchesSearch && matchesFilter;
             });
+
+            // T045: Apply subscription filter (async)
+            filtered = await filterBySubscriptionHistory(filtered);
 
             if (filtered.length === 0) {
                 container.innerHTML = `
