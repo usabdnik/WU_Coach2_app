@@ -140,7 +140,7 @@
 **Git commit**: f6bbe34
 
 ### Phase 5: User Story 2 - Subscription Filter (T037-T053) 🔄 IN PROGRESS
-**Status**: 4/17 tasks complete (24%)
+**Status**: 13/17 tasks complete (76%)
 
 **Completed** ✅:
 - ✅ T001-T003: Infrastructure setup (subscriptions table + import script)
@@ -152,18 +152,24 @@
   - Button text: "📋 Абонемент в сезоне"
   - onclick handler: `toggleSubscriptionFilter()`
   - CSS: Uses existing `.chip` and `.chip.active` styles
+- ✅ T038-T046: JavaScript functions (9 functions implemented)
+  - toggleSubscriptionFilter() - Toggle filter with chip.active state (line 1702-1715)
+  - getSubscriptionCache() - Read cache from localStorage (line 1718-1730)
+  - setSubscriptionCache(data) - Write cache with timestamp (line 1733-1745)
+  - isCacheStale(cacheObj) - Check 24h staleness (line 1748-1758)
+  - fetchSubscriptionHistory() - Query Supabase RPC (line 1761-1783)
+  - filterBySubscriptionHistory() - Main filter logic (line 1786-1822)
+  - renderAthletes() - Made async, integrated filter (line 1825, 1868)
+  - Season date calculation: Uses getCurrentSeason() (Sept 1 - Aug 31)
+  - Visual indicator: chip.active CSS (line 125-128)
 
 **Git commits**:
 - 2f2ddd2: Infrastructure (migration + import script)
 - b0d39b1: UI (subscription filter chip)
+- e23a71b: JavaScript functions (T038-T046)
 
-**Remaining** (13 tasks):
-- T038-T042: Core functions (toggle, filter, cache get/set, staleness check)
-- T043: fetchSubscriptionHistory() - query Supabase subscriptions table
-- T044: Season date calculation (Sept 1 → Aug 31)
-- T045: Integrate subscription filter into renderAthletes() (line 1730-1735)
-- T046: Visual indicator (DONE - uses .chip.active)
-- T047-T053: Manual testing (7 scenarios)
+**Remaining** (4 tasks):
+- T047-T053: Manual testing (7 scenarios) - requires mobile device
 
 **ARCHITECTURAL DECISIONS** (pre-implementation):
 
@@ -230,12 +236,12 @@ Phase 7 COMPLETE (59/95 tasks, 62%).
 Что делаем дальше?
 ```
 
-## Progress: 80/95 tasks (84%)
+## Progress: 89/95 tasks (94%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
-- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 4/17 tasks (24%) 🔄
+- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 13/17 tasks (76%) 🔄
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
 - [X] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks ✅ [Manual tests passed!]
 - [X] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks ✅
