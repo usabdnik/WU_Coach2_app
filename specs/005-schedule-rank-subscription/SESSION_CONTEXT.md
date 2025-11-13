@@ -139,6 +139,49 @@
 ### Phase 5: User Story 2 - Subscription Filter (T037-T053)
 Next priority: Implement subscription filtering (17 tasks remaining)
 
+**ARCHITECTURAL DECISIONS** (pre-implementation):
+
+**1. Season Date Management** → **Option D**: Automatic + Manual Override
+- Default: Sept 1 → Aug 31 (auto-calculated from current date)
+- Override: localStorage.seasonOverride = {start, end}
+- Fallback: Code-based calculation if localStorage empty
+
+**2. Filter Logic** → **CONFIRMED CORRECT**
+```
+Show athlete IF:
+  ∃ subscription WHERE (
+    subscription.athlete_id = athlete.id
+    AND subscription.start_date <= season.end_date
+    AND subscription.end_date >= season.start_date
+  )
+```
+**Translation**: Show if athlete had ANY active subscription that OVERLAPS with season dates
+- ✅ Expired subscriptions COUNT (if were active during season)
+- ✅ Future subscriptions DON'T count (if start after season ends)
+
+**3. Season Switching** → **Option B**: Manual Button "Новый сезон"
+- UI button: "Начать сезон 2025/2026"
+- Workflow:
+  1. Prompt confirmation
+  2. Save current season dates to localStorage
+  3. Update season display
+  4. Reload athlete filters
+- Benefits: Coach controls timing, can finish previous season work
+
+**4. ADDITIONAL REQUIREMENT**: All-Time Records Display
+> "показывать рекорд по упражнению в показателях не только в рамках 1го сезона но и за всю историю существования клиента"
+
+**Implementation**:
+- Show TWO records per exercise:
+  - **Season Record**: Best result Sept 1 → Aug 31
+  - **All-Time Record**: Best result ever (already exists in code via `calculateAllTimeRecords()`)
+- UI Design:
+  ```
+  Упражнение: Подтягивания
+  Сезон 2024/25: 15 повт. (10.01.2025)
+  За всё время: 18 повт. (05.03.2023)
+  ```
+
 ### For New Session:
 ```bash
 cd /Users/nikitaizboldin/SuperClaude/WU_Coach2_GitHub_SpecKit/WU_Coach2_GH_SK
