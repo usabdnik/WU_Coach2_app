@@ -127,6 +127,13 @@
 - pendingChange creation → sync handler → Supabase UPDATE → pendingChanges cleanup → button state update
 - All 4 bugs confirmed resolved in code logic
 
+**Manual Testing**: ✅ PASSED (user confirmed "работает")
+- Schedule editing works
+- Sync button state transitions correctly (yellow → white)
+- pendingChanges clears after sync
+- New schedule persists after page reload
+- No data rollback issues
+
 **Git commit**: f6bbe34
 
 ### Phase 5: User Story 2 - Subscription Filter (T037-T053)
