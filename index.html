@@ -2534,6 +2534,21 @@
 
                         if (error) throw error;
                         successfulChanges.push(change);
+
+                    } else if (change.type === 'schedule') {
+                        console.log('📅 Синхронизация расписания в Supabase:', change.athleteId);
+
+                        const { error } = await supabaseClient
+                            .from('athletes')
+                            .update({
+                                schedule: change.schedule,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', change.athleteId);
+
+                        if (error) throw error;
+                        console.log('✅ Расписание синхронизировано:', change.schedule);
+                        successfulChanges.push(change);
                     }
 
                 } catch (error) {
@@ -2544,6 +2559,14 @@
                             athleteId: change.athleteId,
                             rank_start: change.data.rank_start,
                             rank_end: change.data.rank_end,
+                            error: error.message
+                        });
+                    }
+                    // Log specific error details for schedule data
+                    if (change.type === 'schedule') {
+                        console.error('📅 Ошибка синхронизации расписания:', {
+                            athleteId: change.athleteId,
+                            schedule: change.schedule,
                             error: error.message
                         });
                     }
@@ -3119,33 +3142,6 @@
 
             saveToLocalStorage();
 
-            // Try to sync immediately if online
-            let syncSuccess = false;
-            if (navigator.onLine) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('athletes')
-                        .update({ schedule: scheduleValue })
-                        .eq('id', athleteId);
-
-                    if (error) {
-                        console.error('❌ Supabase sync error:', error);
-                        alert('⚠️ Расписание сохранено локально, но не удалось синхронизировать с сервером.\n\nДанные будут синхронизированы позже.');
-                    } else {
-                        console.log('✅ Schedule synced to Supabase');
-                        syncSuccess = true;
-                        // Remove from pending changes
-                        pendingChanges = pendingChanges.filter(c =>
-                            !(c.type === 'schedule' && c.athleteId === athleteId)
-                        );
-                        saveToLocalStorage();
-                    }
-                } catch (err) {
-                    console.error('❌ Supabase sync failed:', err);
-                    alert('⚠️ Расписание сохранено локально, но произошла ошибка синхронизации.\n\nДанные будут синхронизированы позже.');
-                }
-            }
-
             // Update UI
             renderAthletes();
             closeScheduleModal();
@@ -3156,10 +3152,19 @@
             }
 
             updatePendingIndicator();
-            if (!navigator.onLine || syncSuccess) {
-                alert('✅ Расписание сохранено локально!\n\n' +
-                      (syncSuccess ? 'Синхронизировано с сервером.' : 'Будет синхронизировано при подключении к интернету.'));
+
+            // Try automatic sync if online
+            if (navigator.onLine) {
+                console.log('📅 Attempting automatic sync...');
+                try {
+                    await syncWithSupabase();
+                } catch (err) {
+                    console.error('❌ Auto-sync failed:', err);
+                }
             }
+
+            alert('✅ Расписание сохранено локально!\n\n' +
+                  (navigator.onLine ? 'Нажмите "Синхронизировать" для отправки на сервер.' : 'Будет синхронизировано при подключении к интернету.'));
         }
 
         function formatDate(dateStr) {
