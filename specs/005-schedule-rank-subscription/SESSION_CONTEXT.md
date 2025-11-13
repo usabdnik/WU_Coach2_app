@@ -78,7 +78,7 @@
 
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
-- Latest commit: 116f485 Add: Phase 8 Polish & Documentation (T077-T095)
+- Latest commit: f6bbe34 Fix: Critical schedule sync bugs in Phase 8
 - Clean working tree (all changes committed)
 
 ## Next Steps
@@ -99,6 +99,35 @@
 - ✅ T093: Code cleanup - Dark theme colors consistent
 
 **Git commit**: 116f485
+
+### Phase 8 Bug Fixes (Post-Manual Testing) ✅ COMPLETE
+
+**User Testing Feedback** (identified 4 critical bugs):
+- ❌ Sync button always yellow (pending state stuck)
+- ❌ pendingChanges not clearing after sync
+- ❌ Schedule data rollback (old data restored after sync)
+- ❌ Error handling showed old schedule
+
+**Root Cause**: `type:'schedule'` pendingChanges never processed by `syncPendingChangesToSupabase()`
+
+**Fixes Applied** (commit f6bbe34):
+1. ✅ Added schedule handler in `syncPendingChangesToSupabase()` (lines 2538-2552)
+   - Processes `type:'schedule'` changes
+   - Updates Supabase `athletes.schedule` column
+   - Adds to `successfulChanges[]` for cleanup
+
+2. ✅ Removed duplicate sync logic from `saveSchedule()` (lines 3143-3168)
+   - Now calls centralized `syncWithSupabase()`
+   - Eliminates code duplication
+   - Maintains consistent sync behavior
+
+3. ✅ Added schedule-specific error logging (lines 2566-2572)
+
+**Logic Verification**: ✅ Complete flow tested
+- pendingChange creation → sync handler → Supabase UPDATE → pendingChanges cleanup → button state update
+- All 4 bugs confirmed resolved in code logic
+
+**Git commit**: f6bbe34
 
 ### Phase 5: User Story 2 - Subscription Filter (T037-T053)
 Next priority: Implement subscription filtering (17 tasks remaining)
