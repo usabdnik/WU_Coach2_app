@@ -78,7 +78,10 @@
 
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
-- Latest commit: f6bbe34 Fix: Critical schedule sync bugs in Phase 8
+- Latest commits:
+  - b0d39b1 Add: Subscription filter chip button (Phase 5 - T037)
+  - 2f2ddd2 Add: Subscriptions table migration + import script extension
+  - f6bbe34 Fix: Critical schedule sync bugs in Phase 8
 - Clean working tree (all changes committed)
 
 ## Next Steps
@@ -136,8 +139,31 @@
 
 **Git commit**: f6bbe34
 
-### Phase 5: User Story 2 - Subscription Filter (T037-T053)
-Next priority: Implement subscription filtering (17 tasks remaining)
+### Phase 5: User Story 2 - Subscription Filter (T037-T053) 🔄 IN PROGRESS
+**Status**: 4/17 tasks complete (24%)
+
+**Completed** ✅:
+- ✅ T001-T003: Infrastructure setup (subscriptions table + import script)
+  - Migration: `20251113000003_add_subscriptions_table.sql`
+  - Table: `subscriptions (athlete_id, moyklass_subscription_id, start_date, end_date, status)`
+  - Function: `get_subscriptions_for_season(p_season_start, p_season_end)`
+  - Extended `migration/import-from-moyklass.js` with upsert logic
+- ✅ T037: Subscription filter chip added to header (line 840-842)
+  - Button text: "📋 Абонемент в сезоне"
+  - onclick handler: `toggleSubscriptionFilter()`
+  - CSS: Uses existing `.chip` and `.chip.active` styles
+
+**Git commits**:
+- 2f2ddd2: Infrastructure (migration + import script)
+- b0d39b1: UI (subscription filter chip)
+
+**Remaining** (13 tasks):
+- T038-T042: Core functions (toggle, filter, cache get/set, staleness check)
+- T043: fetchSubscriptionHistory() - query Supabase subscriptions table
+- T044: Season date calculation (Sept 1 → Aug 31)
+- T045: Integrate subscription filter into renderAthletes() (line 1730-1735)
+- T046: Visual indicator (DONE - uses .chip.active)
+- T047-T053: Manual testing (7 scenarios)
 
 **ARCHITECTURAL DECISIONS** (pre-implementation):
 
@@ -204,12 +230,12 @@ Phase 7 COMPLETE (59/95 tasks, 62%).
 Что делаем дальше?
 ```
 
-## Progress: 76/95 tasks (80%)
+## Progress: 80/95 tasks (84%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
-- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 17 tasks
+- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 4/17 tasks (24%) 🔄
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
 - [X] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks ✅ [Manual tests passed!]
 - [X] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks ✅
