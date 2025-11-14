@@ -630,6 +630,191 @@
             font-weight: 700;
             margin-left: 5px;
         }
+
+        /* ============================================================================
+           Schedule Management Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Schedule display in athlete profile */
+        .schedule-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #2a2d3a;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffffff;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .schedule-badge.self-reg {
+            background: #4c9eff;
+        }
+
+        /* Schedule editing form */
+        .schedule-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .schedule-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .schedule-type-btn {
+            flex: 1;
+            padding: 12px;
+            background: #2a2d3a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .schedule-type-btn.active {
+            background: #4c9eff;
+            border-color: #4c9eff;
+        }
+
+        .schedule-entry {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: #1a1d29;
+            border-radius: 8px;
+        }
+
+        .schedule-entry select,
+        .schedule-entry input[type="time"] {
+            flex: 1;
+            padding: 8px 12px;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .schedule-entry .remove-btn {
+            min-width: 44px;
+            height: 44px;
+            background: #dc2626;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .add-schedule-btn {
+            padding: 10px;
+            background: #2a2d3a;
+            border: 1px dashed #4c9eff;
+            border-radius: 8px;
+            color: #4c9eff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-schedule-btn:active {
+            transform: scale(0.98);
+            background: #1a1d29;
+        }
+
+        /* ============================================================================
+           Rank Management Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Rank dropdowns */
+        .rank-selector {
+            width: 100%;
+            padding: 12px;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .rank-selector option {
+            background: #1a1d29;
+            color: #ffffff;
+        }
+
+        .rank-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #2a2d3a;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        .rank-display.youth {
+            background: #fbbf24;
+            color: #000000;
+        }
+
+        .rank-display.adult {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .rank-display.elite {
+            background: #8b5cf6;
+            color: #ffffff;
+        }
+
+        .rank-progression {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #8b8f9f;
+        }
+
+        .rank-progression .arrow {
+            color: #4c9eff;
+        }
+
+        /* ============================================================================
+           Subscription Filter Styles (Feature: 005-schedule-rank-subscription)
+           ============================================================================ */
+
+        /* Subscription filter chip */
+        .subscription-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: #2a2d3a;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .subscription-filter.active {
+            background: #4c9eff;
+            border-color: #4c9eff;
+        }
+
+        .subscription-filter:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -652,6 +837,9 @@
             <button class="chip" data-group="Средняя">Средняя</button>
             <button class="chip" data-group="Продвинутая">Продвинутая</button>
             <button class="chip" data-group="Элитная">Элитная</button>
+            <button class="chip subscription-filter" id="subscriptionFilterChip" onclick="toggleSubscriptionFilter()">
+                📋 Абонемент в сезоне
+            </button>
         </div>
     </div>
 
@@ -709,6 +897,38 @@
                 <div class="form-group">
                     <label class="form-label">Расписание</label>
                     <textarea class="form-textarea" id="recordsSchedule" placeholder="Например: ПН СР ПТ 18:00 / Вт Чт 9:00"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Разряд (начало сезона)</label>
+                    <select class="form-select" id="recordsRankStart">
+                        <option value="">(Не указано)</option>
+                        <option value="Без разряда">Без разряда</option>
+                        <option value="III юношеский разряд">III юношеский разряд</option>
+                        <option value="II юношеский разряд">II юношеский разряд</option>
+                        <option value="I юношеский разряд">I юношеский разряд</option>
+                        <option value="III взрослый разряд">III взрослый разряд</option>
+                        <option value="II взрослый разряд">II взрослый разряд</option>
+                        <option value="I взрослый разряд">I взрослый разряд</option>
+                        <option value="КМС">КМС</option>
+                        <option value="МС">МС</option>
+                        <option value="МСМК">МСМК</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Разряд (конец сезона)</label>
+                    <select class="form-select" id="recordsRankEnd">
+                        <option value="">(Не указано)</option>
+                        <option value="Без разряда">Без разряда</option>
+                        <option value="III юношеский разряд">III юношеский разряд</option>
+                        <option value="II юношеский разряд">II юношеский разряд</option>
+                        <option value="I юношеский разряд">I юношеский разряд</option>
+                        <option value="III взрослый разряд">III взрослый разряд</option>
+                        <option value="II взрослый разряд">II взрослый разряд</option>
+                        <option value="I взрослый разряд">I взрослый разряд</option>
+                        <option value="КМС">КМС</option>
+                        <option value="МС">МС</option>
+                        <option value="МСМК">МСМК</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Подтягивания</label>
@@ -807,6 +1027,55 @@
         </div>
     </div>
 
+    <!-- Модальное окно: Редактировать расписание (Feature: 005-schedule-rank-subscription) -->
+    <div class="modal" id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="scheduleModalTitle">Расписание</div>
+                <button class="close-btn" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <form id="scheduleForm" onsubmit="saveSchedule(event)">
+                <input type="hidden" id="scheduleAthleteId">
+
+                <!-- Переключатель типа расписания -->
+                <div class="form-group">
+                    <label class="form-label">Тип расписания</label>
+                    <div class="schedule-type-selector">
+                        <button type="button" class="schedule-type-btn active" data-type="fixed" onclick="selectScheduleType('fixed')">
+                            📅 Фиксированное расписание
+                        </button>
+                        <button type="button" class="schedule-type-btn" data-type="self-reg" onclick="selectScheduleType('self-reg')">
+                            🔄 Самозапись
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Секция: Фиксированное расписание -->
+                <div id="fixedScheduleSection" class="schedule-section">
+                    <div class="form-group">
+                        <label class="form-label">Дни и время занятий</label>
+                        <div id="scheduleEntriesContainer"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addScheduleEntry()" style="width: 100%; margin-top: 10px;">
+                            ➕ Добавить время
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Секция: Самозапись -->
+                <div id="selfRegSection" class="schedule-section" style="display: none;">
+                    <div class="info-message" style="background: #2a2d3a; padding: 15px; border-radius: 8px; margin: 15px 0; color: #8b8f9f; font-size: 14px;">
+                        ℹ️ Спортсмен записывается на занятия самостоятельно через систему онлайн-записи.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         console.log('✅ JavaScript загружен');
 
@@ -827,6 +1096,8 @@
         let currentFilter = 'all';
         let currentSeason = null;
         let allTimeRecords = {};
+        let isSubscriptionFilterActive = false;
+        let subscriptionCache = null; // {data: [...], timestamp: Date}
 
         // Определение текущего сезона
         function getCurrentSeason() {
@@ -1423,8 +1694,135 @@
             }
         }
 
+        // ============================================================================
+        // Subscription Filter Functions (Feature: 005-schedule-rank-subscription)
+        // ============================================================================
+
+        // T038: Toggle subscription filter on/off
+        function toggleSubscriptionFilter() {
+            isSubscriptionFilterActive = !isSubscriptionFilterActive;
+
+            const chip = document.getElementById('subscriptionFilterChip');
+            if (isSubscriptionFilterActive) {
+                chip.classList.add('active');
+                console.log('📋 Фильтр подписок активирован');
+            } else {
+                chip.classList.remove('active');
+                console.log('📋 Фильтр подписок деактивирован');
+            }
+
+            renderAthletes();
+        }
+
+        // T040: Get subscription cache from localStorage
+        function getSubscriptionCache() {
+            try {
+                const cached = localStorage.getItem('subscriptionCache');
+                if (!cached) return null;
+
+                const parsed = JSON.parse(cached);
+                console.log('📦 Кэш подписок загружен:', parsed.data?.length || 0, 'записей');
+                return parsed;
+            } catch (e) {
+                console.error('❌ Ошибка чтения кэша подписок:', e);
+                return null;
+            }
+        }
+
+        // T041: Set subscription cache to localStorage
+        function setSubscriptionCache(data) {
+            try {
+                const cacheObj = {
+                    data: data,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('subscriptionCache', JSON.stringify(cacheObj));
+                subscriptionCache = cacheObj;
+                console.log('✅ Кэш подписок сохранен:', data.length, 'записей');
+            } catch (e) {
+                console.error('❌ Ошибка сохранения кэша подписок:', e);
+            }
+        }
+
+        // T042: Check if cache is stale (>24 hours old)
+        function isCacheStale(cacheObj) {
+            if (!cacheObj || !cacheObj.timestamp) return true;
+
+            const now = new Date();
+            const cacheTime = new Date(cacheObj.timestamp);
+            const hoursDiff = (now - cacheTime) / (1000 * 60 * 60);
+
+            const isStale = hoursDiff > 24;
+            console.log(`⏰ Кэш подписок: ${isStale ? 'устарел' : 'актуален'} (${hoursDiff.toFixed(1)}ч)`);
+            return isStale;
+        }
+
+        // T043: Fetch subscription history from Supabase
+        async function fetchSubscriptionHistory(seasonStart, seasonEnd) {
+            try {
+                console.log('🔄 Загрузка подписок с', seasonStart.toISOString().split('T')[0],
+                           'по', seasonEnd.toISOString().split('T')[0]);
+
+                const { data, error } = await supabaseClient
+                    .rpc('get_subscriptions_for_season', {
+                        p_season_start: seasonStart.toISOString().split('T')[0],
+                        p_season_end: seasonEnd.toISOString().split('T')[0]
+                    });
+
+                if (error) {
+                    console.error('❌ Ошибка запроса подписок:', error);
+                    return [];
+                }
+
+                console.log('✅ Загружено подписок:', data?.length || 0);
+                return data || [];
+            } catch (e) {
+                console.error('❌ Ошибка fetchSubscriptionHistory:', e);
+                return [];
+            }
+        }
+
+        // T039 + T044: Filter athletes by subscription history
+        async function filterBySubscriptionHistory(athletes) {
+            if (!isSubscriptionFilterActive) {
+                return athletes; // Filter not active, return all
+            }
+
+            // Get current season dates (Sept 1 - Aug 31)
+            const season = getCurrentSeason();
+            console.log('📅 Фильтрация по сезону:', season.name);
+
+            // Check cache first
+            let subscriptions = [];
+            const cache = getSubscriptionCache();
+
+            if (cache && !isCacheStale(cache)) {
+                // Use cached data
+                subscriptions = cache.data;
+                console.log('📦 Использую кэш подписок');
+            } else {
+                // Fetch fresh data from Supabase
+                subscriptions = await fetchSubscriptionHistory(season.startDate, season.endDate);
+                if (subscriptions.length > 0) {
+                    setSubscriptionCache(subscriptions);
+                }
+            }
+
+            // Filter athletes: show only those with subscriptions in current season
+            const athleteIdsWithSubscription = new Set(
+                subscriptions.map(sub => sub.athlete_id)
+            );
+
+            const filtered = athletes.filter(athlete =>
+                athleteIdsWithSubscription.has(athlete.id)
+            );
+
+            console.log('📋 Отфильтровано:', filtered.length, 'из', athletes.length, 'спортсменов');
+            return filtered;
+        }
+
         // Отображение учеников
-        function renderAthletes() {
+        async function renderAthletes() {
             const container = document.getElementById('athletesList');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
@@ -1458,12 +1856,16 @@
                 return;
             }
 
+            // Apply search and group filters first
             let filtered = athletesData.filter(a => {
                 const matchesSearch = a.lastName.toLowerCase().includes(searchTerm) ||
                                     a.firstName.toLowerCase().includes(searchTerm);
                 const matchesFilter = currentFilter === 'all' || a.group === currentFilter;
                 return matchesSearch && matchesFilter;
             });
+
+            // T045: Apply subscription filter (async)
+            filtered = await filterBySubscriptionHistory(filtered);
 
             if (filtered.length === 0) {
                 container.innerHTML = `
@@ -1527,6 +1929,77 @@
         }
 
         // Детали ученика
+        // ============================================================================
+        // Schedule Management Functions (Feature: 005-schedule-rank-subscription)
+        // ============================================================================
+
+        // Format schedule for display in athlete profile
+        function formatScheduleDisplay(scheduleString) {
+            if (!scheduleString || scheduleString.trim() === '') {
+                return '<span style="color: #6b6f82;">(Не указано)</span>';
+            }
+
+            if (scheduleString === 'Самозапись') {
+                return '<span class="schedule-badge self-reg">📝 Самозапись</span>';
+            }
+
+            // Split fixed schedule: "Пн 18:00, Ср 19:00" → ["Пн 18:00", "Ср 19:00"]
+            return scheduleString
+                .split(', ')
+                .map(entry => `<span class="schedule-badge">🕐 ${entry}</span>`)
+                .join(' ');
+        }
+
+        // T057: Get rank icon emoji based on rank level
+        function getRankIcon(rank) {
+            if (!rank || rank === '' || rank === 'Без разряда') {
+                return '🔰'; // Beginner shield
+            }
+            if (rank.includes('юношеский')) {
+                return '🥉'; // Bronze for youth ranks
+            }
+            if (rank.includes('III взрослый') || rank.includes('II взрослый')) {
+                return '🥈'; // Silver for adult 3rd/2nd
+            }
+            if (rank.includes('I взрослый') || rank === 'КМС') {
+                return '🥇'; // Gold for adult 1st and CMS
+            }
+            if (rank === 'МС' || rank === 'МСМК') {
+                return '🏆'; // Trophy for Master of Sport
+            }
+            return '🔰'; // Default
+        }
+
+        // T056: Format rank display for athlete profile
+        function formatRankDisplay(rankStart, rankEnd) {
+            console.log('🏆 Форматирование отображения разрядов:', rankStart, '→', rankEnd);
+            const hasStart = rankStart && rankStart !== '';
+            const hasEnd = rankEnd && rankEnd !== '';
+
+            if (!hasStart && !hasEnd) {
+                return '<span style="color: #6b6f82;">(Не указано)</span>';
+            }
+
+            if (hasStart && hasEnd) {
+                // Show progression: "Start ➡️ End"
+                const startIcon = getRankIcon(rankStart);
+                const endIcon = getRankIcon(rankEnd);
+                return `<span style="color: #fff;">${startIcon} ${rankStart} ➡️ ${endIcon} ${rankEnd}</span>`;
+            }
+
+            if (hasStart) {
+                const icon = getRankIcon(rankStart);
+                return `<span style="color: #fff;">${icon} ${rankStart}</span>`;
+            }
+
+            if (hasEnd) {
+                const icon = getRankIcon(rankEnd);
+                return `<span style="color: #fff;">${icon} ${rankEnd}</span>`;
+            }
+
+            return '<span style="color: #6b6f82;">(Не указано)</span>';
+        }
+
         function showAthleteDetails(id) {
             const athlete = athletesData.find(a => a.id == id);
             if (!athlete) return;
@@ -1540,12 +2013,25 @@
             const allTime = allTimeRecords[athlete.id] || { pullUps: 0, pushUps: 0, dips: 0 };
 
             const detailsHTML = `
-                ${athlete.schedule ? `
-                    <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #fbbf24;">
-                        <div class="section-title" style="margin-bottom: 5px;">Расписание</div>
-                        <div style="color: #fff; font-size: 14px;">🕐 ${athlete.schedule}</div>
+                <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #4c9eff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-title" style="margin: 0;">Расписание</div>
+                        <button onclick="openScheduleModal('${athlete.id}'); event.stopPropagation();" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #4c9eff;">✏️</button>
                     </div>
-                ` : ''}
+                    <div style="color: #fff; font-size: 14px; line-height: 1.6;">
+                        ${formatScheduleDisplay(athlete.schedule)}
+                    </div>
+                </div>
+
+                <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #fbbf24;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-title" style="margin: 0;">Спортивный разряд</div>
+                        <button onclick="editRecords('${athlete.id}'); event.stopPropagation();" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #fbbf24;">✏️</button>
+                    </div>
+                    <div style="color: #fff; font-size: 14px; line-height: 1.6;">
+                        ${formatRankDisplay(athlete.rank_start, athlete.rank_end)}
+                    </div>
+                </div>
 
                 <div class="section-title">Показатели сезона ${currentSeason.name}</div>
                 <div class="stats-mini" style="justify-content: space-around; margin-bottom: 15px;">
@@ -1728,6 +2214,9 @@
             document.getElementById('recordsAthleteId').value = athlete.id;
             document.getElementById('recordsGroup').value = athlete.group;
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
+            document.getElementById('recordsRankStart').value = athlete.rank_start || '';
+            document.getElementById('recordsRankEnd').value = athlete.rank_end || '';
+            console.log('🏆 Загрузка разрядов:', athlete.rank_start, '→', athlete.rank_end);
 
             // Создаем мапу месяцев для быстрого доступа
             const performanceMap = {};
@@ -1830,7 +2319,10 @@
                 firstName: firstName,
                 name: athlete.name,
                 group: athlete.group_name || 'Начинающие',
-                schedule: '', // TODO: Add schedule field to Supabase schema
+                schedule: athlete.schedule || '', // NEW: Schedule field (format: "Пн 18:00, Ср 19:00" OR "Самозапись")
+                rank_start: athlete.rank_start || null, // NEW: Season start rank
+                rank_end: athlete.rank_end || null, // NEW: Season end rank
+                rank_history: athlete.rank_history || [], // NEW: Historical rank data (JSONB array)
                 active: athlete.status === 'active' ? 'Да' : 'Нет',
                 status: athlete.status,
                 season: athlete.season || currentSeason?.name,
@@ -2007,13 +2499,34 @@
                         // Update athlete record
                         console.log('📤 Обновление спортсмена в Supabase:', change.athleteName);
 
-                        // Update athlete basic info (group, schedule)
+                        // Update athlete basic info (group, schedule, rank_start)
+                        const updateData = {
+                            group_name: change.data.group,
+                            updated_at: new Date().toISOString()
+                        };
+
+                        // Add schedule if present in change data
+                        if ('schedule' in change.data) {
+                            updateData.schedule = change.data.schedule;
+                        }
+
+                        // Add rank_start if present in change data
+                        if ('rank_start' in change.data) {
+                            updateData.rank_start = change.data.rank_start;
+                            console.log('🏆 Синхронизация rank_start:', change.data.rank_start);
+                        }
+
+                        // Add rank_end if present in change data
+                        if ('rank_end' in change.data) {
+                            updateData.rank_end = change.data.rank_end;
+                            console.log('🏆 Синхронизация rank_end:', change.data.rank_end);
+                        }
+
+                        console.log('🏆 Обновление данных спортсмена:', updateData);
+
                         const { error: athleteError } = await supabaseClient
                             .from('athletes')
-                            .update({
-                                group_name: change.data.group,
-                                updated_at: new Date().toISOString()
-                            })
+                            .update(updateData)
                             .eq('id', change.athleteId);
 
                         if (athleteError) throw athleteError;
@@ -2157,10 +2670,42 @@
 
                         if (error) throw error;
                         successfulChanges.push(change);
+
+                    } else if (change.type === 'schedule') {
+                        console.log('📅 Синхронизация расписания в Supabase:', change.athleteId);
+
+                        const { error } = await supabaseClient
+                            .from('athletes')
+                            .update({
+                                schedule: change.schedule,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', change.athleteId);
+
+                        if (error) throw error;
+                        console.log('✅ Расписание синхронизировано:', change.schedule);
+                        successfulChanges.push(change);
                     }
 
                 } catch (error) {
                     console.error('❌ Ошибка синхронизации изменения:', error);
+                    // Log specific error details for rank data
+                    if (change.type === 'athlete' && ('rank_start' in change.data || 'rank_end' in change.data)) {
+                        console.error('🏆 Ошибка синхронизации разрядов:', {
+                            athleteId: change.athleteId,
+                            rank_start: change.data.rank_start,
+                            rank_end: change.data.rank_end,
+                            error: error.message
+                        });
+                    }
+                    // Log specific error details for schedule data
+                    if (change.type === 'schedule') {
+                        console.error('📅 Ошибка синхронизации расписания:', {
+                            athleteId: change.athleteId,
+                            schedule: change.schedule,
+                            error: error.message
+                        });
+                    }
                     errors.push(change);
                 }
             }
@@ -2452,14 +2997,20 @@
             document.getElementById('syncBtn').addEventListener('click', syncWithSupabase); // Switched to Supabase
             document.getElementById('searchInput').addEventListener('input', renderAthletes);
 
-            document.querySelectorAll('.chip').forEach(chip => {
+            document.querySelectorAll('.chip:not(.subscription-filter)').forEach(chip => {
                 chip.addEventListener('click', (e) => {
-                    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                    document.querySelectorAll('.chip:not(.subscription-filter)').forEach(c => c.classList.remove('active'));
                     e.target.classList.add('active');
                     currentFilter = e.target.dataset.group;
                     renderAthletes();
                 });
             });
+
+            // Initialize "All groups" filter as active by default
+            const allGroupsChip = document.querySelector('.chip[data-group="all"]');
+            if (allGroupsChip) {
+                allGroupsChip.classList.add('active');
+            }
 
             document.getElementById('recordsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -2467,9 +3018,28 @@
                 const athlete = athletesData.find(a => a.id == id);
                 if (!athlete) return;
 
-                // Обновляем группу и расписание
+                // Обновляем группу, расписание и разряды
                 athlete.group = document.getElementById('recordsGroup').value;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
+                const rankStartValue = document.getElementById('recordsRankStart').value;
+                const rankEndValue = document.getElementById('recordsRankEnd').value;
+
+                // T083: Validate rank values
+                const validRanks = ['', 'Без разряда', 'III юношеский разряд', 'II юношеский разряд', 'I юношеский разряд',
+                                   'III взрослый разряд', 'II взрослый разряд', 'I взрослый разряд', 'КМС', 'МС', 'МСМК'];
+                if (!validRanks.includes(rankStartValue)) {
+                    alert(`⚠️ Неверный разряд (начало сезона): ${rankStartValue}`);
+                    return;
+                }
+                if (!validRanks.includes(rankEndValue)) {
+                    alert(`⚠️ Неверный разряд (конец сезона): ${rankEndValue}`);
+                    return;
+                }
+
+                athlete.rank_start = rankStartValue === '' ? null : rankStartValue;
+                athlete.rank_end = rankEndValue === '' ? null : rankEndValue;
+
+                console.log('🏆 Сохранение разрядов:', athlete.rank_start, '→', athlete.rank_end);
 
                 // Собираем performance
                 athlete.performance = MONTHS.map(month => ({
@@ -2495,6 +3065,8 @@
                     id: athlete.id,
                     group: athlete.group,
                     schedule: athlete.schedule,
+                    rank_start: athlete.rank_start,
+                    rank_end: athlete.rank_end,
                     performance: athlete.performance.map(p => ({
                         pullUps: p.pullUps,
                         pushUps: p.pushUps,
@@ -2519,6 +3091,222 @@
 
         function closeModal(id) {
             document.getElementById(id).classList.remove('show');
+        }
+
+        // ==========================================
+        // SCHEDULE MODAL FUNCTIONS (Feature: 005-schedule-rank-subscription)
+        // ==========================================
+
+        // T022: Open schedule modal
+        function openScheduleModal(athleteId) {
+            console.log('📅 Opening schedule modal for athlete:', athleteId);
+            const athlete = athletesData.find(a => a.id == athleteId);
+            if (!athlete) return;
+
+            document.getElementById('scheduleAthleteId').value = athleteId;
+            document.getElementById('scheduleModalTitle').textContent = `Расписание: ${athlete.name}`;
+
+            // Determine schedule type and populate form
+            if (athlete.schedule === 'Самозапись') {
+                selectScheduleType('self-reg');
+            } else {
+                selectScheduleType('fixed');
+                // Parse existing schedule and render entries
+                if (athlete.schedule) {
+                    parseAndRenderSchedule(athlete.schedule);
+                } else {
+                    renderScheduleEntries([]);
+                }
+            }
+
+            document.getElementById('scheduleModal').classList.add('show');
+        }
+
+        // T023: Close schedule modal
+        function closeScheduleModal() {
+            console.log('📅 Closing schedule modal');
+            document.getElementById('scheduleModal').classList.remove('show');
+            // Clear form
+            document.getElementById('scheduleEntriesContainer').innerHTML = '';
+        }
+
+        // T024: Select schedule type (fixed or self-reg)
+        function selectScheduleType(type) {
+            console.log('📅 Selecting schedule type:', type);
+
+            // Update button states
+            document.querySelectorAll('.schedule-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            // Toggle sections
+            if (type === 'fixed') {
+                document.getElementById('fixedScheduleSection').style.display = 'block';
+                document.getElementById('selfRegSection').style.display = 'none';
+            } else {
+                document.getElementById('fixedScheduleSection').style.display = 'none';
+                document.getElementById('selfRegSection').style.display = 'block';
+            }
+        }
+
+        // T025: Render schedule entries
+        function renderScheduleEntries(entries) {
+            console.log('📅 Rendering schedule entries:', entries);
+            const container = document.getElementById('scheduleEntriesContainer');
+
+            if (entries.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b6f82; font-size: 14px;">Нет расписания. Нажмите "Добавить время".</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map((entry, index) => `
+                <div class="schedule-entry" style="margin-bottom: 10px;">
+                    <select class="schedule-day" data-index="${index}">
+                        <option value="Пн" ${entry.day === 'Пн' ? 'selected' : ''}>Понедельник</option>
+                        <option value="Вт" ${entry.day === 'Вт' ? 'selected' : ''}>Вторник</option>
+                        <option value="Ср" ${entry.day === 'Ср' ? 'selected' : ''}>Среда</option>
+                        <option value="Чт" ${entry.day === 'Чт' ? 'selected' : ''}>Четверг</option>
+                        <option value="Пт" ${entry.day === 'Пт' ? 'selected' : ''}>Пятница</option>
+                        <option value="Сб" ${entry.day === 'Сб' ? 'selected' : ''}>Суббота</option>
+                        <option value="Вс" ${entry.day === 'Вс' ? 'selected' : ''}>Воскресенье</option>
+                    </select>
+                    <input type="time" class="schedule-time" data-index="${index}" value="${entry.time || ''}" required>
+                    <button type="button" class="remove-btn" onclick="removeScheduleEntry(${index})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // T026: Add new schedule entry
+        function addScheduleEntry() {
+            console.log('📅 Adding schedule entry');
+            const currentEntries = getScheduleEntries();
+            currentEntries.push({ day: 'Пн', time: '18:00' });
+            renderScheduleEntries(currentEntries);
+        }
+
+        // T027: Remove schedule entry
+        function removeScheduleEntry(index) {
+            console.log('📅 Removing schedule entry:', index);
+            const currentEntries = getScheduleEntries();
+            currentEntries.splice(index, 1);
+            renderScheduleEntries(currentEntries);
+        }
+
+        // T028: Get schedule entries from form
+        function getScheduleEntries() {
+            const container = document.getElementById('scheduleEntriesContainer');
+            const entries = [];
+
+            container.querySelectorAll('.schedule-entry').forEach(entry => {
+                const day = entry.querySelector('.schedule-day').value;
+                const time = entry.querySelector('.schedule-time').value;
+                if (day && time) {
+                    entries.push({ day, time });
+                }
+            });
+
+            return entries;
+        }
+
+        // Helper: Parse schedule string into entries
+        function parseAndRenderSchedule(scheduleString) {
+            console.log('📅 Parsing schedule string:', scheduleString);
+            if (!scheduleString || scheduleString === 'Самозапись') {
+                renderScheduleEntries([]);
+                return;
+            }
+
+            // Parse format: "Пн 18:00, Ср 19:00, Пт 18:00"
+            const entries = scheduleString.split(',').map(entry => {
+                const parts = entry.trim().split(' ');
+                if (parts.length === 2) {
+                    return { day: parts[0], time: parts[1] };
+                }
+                return null;
+            }).filter(e => e !== null);
+
+            renderScheduleEntries(entries);
+        }
+
+        // T029: Save schedule
+        async function saveSchedule(event) {
+            event.preventDefault();
+            console.log('📅 Saving schedule');
+
+            const athleteId = document.getElementById('scheduleAthleteId').value;
+            const athlete = athletesData.find(a => a.id == athleteId);
+            if (!athlete) return;
+
+            // Determine schedule value
+            let scheduleValue = '';
+            const activeType = document.querySelector('.schedule-type-btn.active').dataset.type;
+
+            if (activeType === 'self-reg') {
+                scheduleValue = 'Самозапись';
+            } else {
+                // Fixed schedule: format as "Пн 18:00, Ср 19:00"
+                const entries = getScheduleEntries();
+                if (entries.length === 0) {
+                    alert('⚠️ Добавьте хотя бы одно время занятия или выберите "Самозапись"');
+                    return;
+                }
+
+                // T082: Validate schedule format
+                const validDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                const timeRegex = /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/;
+
+                for (const entry of entries) {
+                    if (!validDays.includes(entry.day)) {
+                        alert(`⚠️ Неверный день недели: ${entry.day}`);
+                        return;
+                    }
+                    if (!timeRegex.test(entry.time)) {
+                        alert(`⚠️ Неверный формат времени: ${entry.time}. Используйте формат ЧЧ:ММ (например, 18:00)`);
+                        return;
+                    }
+                }
+
+                scheduleValue = entries.map(e => `${e.day} ${e.time}`).join(', ');
+            }
+
+            console.log('📅 Schedule value:', scheduleValue);
+
+            // Update local data
+            athlete.schedule = scheduleValue;
+
+            // Add to pending changes for Supabase sync
+            pendingChanges.push({
+                type: 'schedule',
+                athleteId: athleteId,
+                schedule: scheduleValue
+            });
+
+            saveToLocalStorage();
+
+            // Update UI
+            renderAthletes();
+            closeScheduleModal();
+
+            // Refresh athlete details if modal is open
+            if (document.getElementById('athleteModal').classList.contains('show')) {
+                showAthleteDetails(athleteId);
+            }
+
+            updatePendingIndicator();
+
+            // Try automatic sync if online
+            if (navigator.onLine) {
+                console.log('📅 Attempting automatic sync...');
+                try {
+                    await syncWithSupabase();
+                } catch (err) {
+                    console.error('❌ Auto-sync failed:', err);
+                }
+            }
+
+            alert('✅ Расписание сохранено локально!\n\n' +
+                  (navigator.onLine ? 'Нажмите "Синхронизировать" для отправки на сервер.' : 'Будет синхронизировано при подключении к интернету.'));
         }
 
         function formatDate(dateStr) {

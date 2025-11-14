@@ -220,6 +220,65 @@ function sleep(ms) {
 }
 
 // ============================================
+// SUPABASE SYNC FUNCTIONS
+// ============================================
+
+/**
+ * Sync subscription records to Supabase
+ * Uses upsert logic to avoid duplicates
+ */
+async function syncSubscriptionsToSupabase(athleteId, subscriptions) {
+  if (!subscriptions || subscriptions.length === 0) return;
+
+  let syncedCount = 0;
+
+  for (const sub of subscriptions) {
+    try {
+      // Check if subscription already exists
+      const { data: existing, error: checkError } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('moyklass_subscription_id', String(sub.id))
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      const subscriptionData = {
+        athlete_id: athleteId,
+        moyklass_subscription_id: String(sub.id),
+        start_date: sub.beginDate || null,
+        end_date: sub.endDate || null,
+        status: sub.statusId === '2' ? 'active' : 'expired'
+      };
+
+      if (existing) {
+        // Update existing
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update(subscriptionData)
+          .eq('id', existing.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insert new
+        const { error: insertError } = await supabase
+          .from('subscriptions')
+          .insert(subscriptionData);
+
+        if (insertError) throw insertError;
+      }
+
+      syncedCount++;
+
+    } catch (err) {
+      console.error(`  ⚠️  Subscription ${sub.id} sync failed: ${err.message}`);
+    }
+  }
+
+  return syncedCount;
+}
+
+// ============================================
 // MAIN SYNC FUNCTION
 // ============================================
 
@@ -260,7 +319,8 @@ async function syncAthletesFromMoyklass() {
     // 7. Sync to Supabase
     console.log('💾 Syncing to Supabase...\n');
 
-    let successCount = 0;
+    let athleteSuccessCount = 0;
+    let subscriptionSuccessCount = 0;
     let errorCount = 0;
     const errors = [];
 
@@ -287,15 +347,22 @@ async function syncAthletesFromMoyklass() {
           status: status
         };
 
-        // Call Supabase function
-        const { data, error } = await supabase.rpc('save_athlete_with_validation', {
+        // Step 1: Save/update athlete
+        const { data: athleteResult, error: athleteError } = await supabase.rpc('save_athlete_with_validation', {
           p_athlete_data: athleteData
         });
 
-        if (error) throw error;
+        if (athleteError) throw athleteError;
 
-        console.log(`✅ ${fullName} → ${status}`);
-        successCount++;
+        const athleteId = athleteResult?.athlete_id || athleteResult;
+        athleteSuccessCount++;
+
+        // Step 2: Sync subscriptions for this athlete
+        const userSubscriptions = subscriptionsByUser[userId] || [];
+        const syncedSubs = await syncSubscriptionsToSupabase(athleteId, userSubscriptions);
+        subscriptionSuccessCount += syncedSubs;
+
+        console.log(`✅ ${fullName} → ${status} (${syncedSubs} subscriptions)`);
 
       } catch (err) {
         console.error(`❌ Error syncing user ${userId}:`, err.message);
@@ -315,7 +382,8 @@ async function syncAthletesFromMoyklass() {
     console.log('\n' + '='.repeat(50));
     console.log('📊 SYNC RESULTS');
     console.log('='.repeat(50));
-    console.log(`✅ Success: ${successCount}`);
+    console.log(`✅ Athletes synced: ${athleteSuccessCount}`);
+    console.log(`✅ Subscriptions synced: ${subscriptionSuccessCount}`);
     console.log(`❌ Errors: ${errorCount}`);
 
     if (errors.length > 0) {

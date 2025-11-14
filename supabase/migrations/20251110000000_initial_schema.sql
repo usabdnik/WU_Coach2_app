@@ -129,57 +129,76 @@ ALTER TABLE public.exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.performances ENABLE ROW LEVEL SECURITY;
 
+-- Replace lines 132-182 in 20251110000000_initial_schema.sql
+-- with conditional policy creation
+
 -- Athletes policies (allow all for anon)
-CREATE POLICY "Enable read access for all users" ON public.athletes
-    FOR SELECT USING (true);
-
-CREATE POLICY "Enable insert for all users" ON public.athletes
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Enable update for all users" ON public.athletes
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Enable delete for all users" ON public.athletes
-    FOR DELETE USING (true);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'athletes' AND policyname = 'Enable read access for all users') THEN
+    CREATE POLICY "Enable read access for all users" ON public.athletes FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'athletes' AND policyname = 'Enable insert for all users') THEN
+    CREATE POLICY "Enable insert for all users" ON public.athletes FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'athletes' AND policyname = 'Enable update for all users') THEN
+    CREATE POLICY "Enable update for all users" ON public.athletes FOR UPDATE USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'athletes' AND policyname = 'Enable delete for all users') THEN
+    CREATE POLICY "Enable delete for all users" ON public.athletes FOR DELETE USING (true);
+  END IF;
+END $$;
 
 -- Exercises policies (allow all for anon)
-CREATE POLICY "Enable read access for all users" ON public.exercises
-    FOR SELECT USING (true);
-
-CREATE POLICY "Enable insert for all users" ON public.exercises
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Enable update for all users" ON public.exercises
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Enable delete for all users" ON public.exercises
-    FOR DELETE USING (true);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'exercises' AND policyname = 'Enable read access for all users') THEN
+    CREATE POLICY "Enable read access for all users" ON public.exercises FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'exercises' AND policyname = 'Enable insert for all users') THEN
+    CREATE POLICY "Enable insert for all users" ON public.exercises FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'exercises' AND policyname = 'Enable update for all users') THEN
+    CREATE POLICY "Enable update for all users" ON public.exercises FOR UPDATE USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'exercises' AND policyname = 'Enable delete for all users') THEN
+    CREATE POLICY "Enable delete for all users" ON public.exercises FOR DELETE USING (true);
+  END IF;
+END $$;
 
 -- Goals policies (allow all for anon)
-CREATE POLICY "Enable read access for all users" ON public.goals
-    FOR SELECT USING (true);
-
-CREATE POLICY "Enable insert for all users" ON public.goals
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Enable update for all users" ON public.goals
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Enable delete for all users" ON public.goals
-    FOR DELETE USING (true);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'goals' AND policyname = 'Enable read access for all users') THEN
+    CREATE POLICY "Enable read access for all users" ON public.goals FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'goals' AND policyname = 'Enable insert for all users') THEN
+    CREATE POLICY "Enable insert for all users" ON public.goals FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'goals' AND policyname = 'Enable update for all users') THEN
+    CREATE POLICY "Enable update for all users" ON public.goals FOR UPDATE USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'goals' AND policyname = 'Enable delete for all users') THEN
+    CREATE POLICY "Enable delete for all users" ON public.goals FOR DELETE USING (true);
+  END IF;
+END $$;
 
 -- Performances policies (allow all for anon)
-CREATE POLICY "Enable read access for all users" ON public.performances
-    FOR SELECT USING (true);
-
-CREATE POLICY "Enable insert for all users" ON public.performances
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Enable update for all users" ON public.performances
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Enable delete for all users" ON public.performances
-    FOR DELETE USING (true);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'performances' AND policyname = 'Enable read access for all users') THEN
+    CREATE POLICY "Enable read access for all users" ON public.performances FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'performances' AND policyname = 'Enable insert for all users') THEN
+    CREATE POLICY "Enable insert for all users" ON public.performances FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'performances' AND policyname = 'Enable update for all users') THEN
+    CREATE POLICY "Enable update for all users" ON public.performances FOR UPDATE USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'performances' AND policyname = 'Enable delete for all users') THEN
+    CREATE POLICY "Enable delete for all users" ON public.performances FOR DELETE USING (true);
+  END IF;
+END $$;
 
 -- ============================================================================
 -- Grant permissions to anon and authenticated roles
