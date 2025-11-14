@@ -1,0 +1,48 @@
+name: Deploy PWA to GitHub Pages
+
+on:
+  # Запуск при push в main
+  push:
+    branches:
+      - main
+
+  # Возможность запустить вручную
+  workflow_dispatch:
+
+# Разрешения для публикации на GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Только одно развертывание одновременно
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Публикуем весь корень проекта (где лежит index.html)
+          path: '.'
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: ✅ Deployment complete
+        if: success()
+        run: echo "🎉 PWA успешно опубликовано на GitHub Pages!"
