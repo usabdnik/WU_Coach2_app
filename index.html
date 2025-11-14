@@ -2997,9 +2997,9 @@
             document.getElementById('syncBtn').addEventListener('click', syncWithSupabase); // Switched to Supabase
             document.getElementById('searchInput').addEventListener('input', renderAthletes);
 
-            document.querySelectorAll('.chip').forEach(chip => {
+            document.querySelectorAll('.chip:not(.subscription-filter)').forEach(chip => {
                 chip.addEventListener('click', (e) => {
-                    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                    document.querySelectorAll('.chip:not(.subscription-filter)').forEach(c => c.classList.remove('active'));
                     e.target.classList.add('active');
                     currentFilter = e.target.dataset.group;
                     renderAthletes();
