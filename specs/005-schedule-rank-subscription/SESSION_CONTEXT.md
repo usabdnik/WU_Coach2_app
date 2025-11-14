@@ -139,8 +139,8 @@
 
 **Git commit**: f6bbe34
 
-### Phase 5: User Story 2 - Subscription Filter (T037-T053) 🔄 IN PROGRESS
-**Status**: 13/17 tasks complete (76%)
+### Phase 5: User Story 2 - Subscription Filter (T037-T053) ✅ READY FOR TESTING
+**Status**: 10/17 tasks complete (59%) - Migration applied, data imported, awaiting manual tests
 
 **Completed** ✅:
 - ✅ T001-T003: Infrastructure setup (subscriptions table + import script)
@@ -148,7 +148,14 @@
   - Table: `subscriptions (athlete_id, moyklass_subscription_id, start_date, end_date, status)`
   - Function: `get_subscriptions_for_season(p_season_start, p_season_end)`
   - Extended `migration/import-from-moyklass.js` with upsert logic
-- ✅ T037: Subscription filter chip added to header (line 840-842)
+  - **Applied**: Via PostgreSQL Direct (node-postgres) using `migration/run-migration.js`
+  - **Verified**: Table + function exist in Supabase ✅
+- ✅ T004: Data import from Moyklass
+  - **Imported**: 52 athletes with subscriptions
+  - **Synced**: 52 subscriptions to Supabase
+  - **Verified**: `get_subscriptions_for_season()` returns 52 records for current season
+  - **Script**: `migration/import-from-moyklass.js` (exit code 0)
+- ✅ T037: Subscription filter chip added to header (line 841)
   - Button text: "📋 Абонемент в сезоне"
   - onclick handler: `toggleSubscriptionFilter()`
   - CSS: Uses existing `.chip` and `.chip.active` styles
@@ -168,8 +175,14 @@
 - b0d39b1: UI (subscription filter chip)
 - e23a71b: JavaScript functions (T038-T046)
 
-**Remaining** (4 tasks):
-- T047-T053: Manual testing (7 scenarios) - requires mobile device
+**Database Status** ✅:
+- ✅ Migration applied via PostgreSQL Direct (bypassed Supabase CLI)
+- ✅ Table `subscriptions` exists with 52 records
+- ✅ Function `get_subscriptions_for_season` works correctly
+- ✅ All 52 athletes have active subscriptions in current season (2025-09-01 → 2026-08-31)
+
+**Remaining** (7 tasks):
+- ⏳ T047-T053: Manual testing (7 scenarios) - READY TO TEST
 
 **ARCHITECTURAL DECISIONS** (pre-implementation):
 
@@ -214,7 +227,7 @@ Show athlete IF:
   За всё время: 18 повт. (05.03.2023)
   ```
 
-### For New Session:
+### For New Session (AFTER chat clear):
 ```bash
 cd /Users/nikitaizboldin/SuperClaude/WU_Coach2_GitHub_SpecKit/WU_Coach2_GH_SK
 git status
@@ -223,28 +236,47 @@ git branch
 
 Say to Claude:
 ```
-Продолжаю feature 005-schedule-rank-subscription.
+Продолжаю Feature 005. Выполни manual testing T047-T053.
 
-Phase 7 COMPLETE (59/95 tasks, 62%).
-Готов к Phase 5 (Subscription Filter) или Phase 8 (Polish & Documentation).
+СТАТУС: Migration применена ✅, данные импортированы ✅, код готов к тестированию ✅
 
-Файлы:
-- specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
-- specs/005-schedule-rank-subscription/tasks.md
-- index.html (основной файл)
+ЗАДАЧА: Автоматическое тестирование subscription filter через Playwright MCP
 
-Что делаем дальше?
+Тесты (T047-T053):
+1. T047: Subscription filter показывает athletes с subscriptions
+2. T048: Chip toggle работает (active/inactive states)
+3. T049: Expired subscriptions показываются (если в сезоне)
+4. T050: localStorage cache работает (24h expiry)
+5. T051: Offline mode использует cache
+6. T052: Supabase failure обрабатывается gracefully
+7. T053: Season dates рассчитываются правильно (Sept 1 - Aug 31)
+
+Файл: index.html (line 841: chip, line 1702: toggleSubscriptionFilter)
+Context: specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
 ```
 
-## Progress: 89/95 tasks (94%)
+### Testing Strategy (Playwright MCP)
+
+**Use Playwright browser automation** to verify:
+1. Navigate to `file:///Users/nikitaizboldin/SuperClaude/WU_Coach2_GitHub_SpecKit/WU_Coach2_GH_SK/index.html`
+2. Click subscription filter chip (text: "📋 Абонемент в сезоне")
+3. Capture console messages (filter state, fetch calls, cache usage)
+4. Inspect localStorage (subscriptionHistoryCache key)
+5. Test offline mode (Network → Offline)
+6. Verify filter behavior (chip active state, athlete count changes)
+7. Execute JavaScript to check getCurrentSeason() output
+
+## Progress: 88/95 tasks (93%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
-- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 13/17 tasks (76%) 🔄
+- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 10/17 tasks (59%) 🧪 READY FOR TESTING
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
 - [X] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks ✅ [Manual tests passed!]
 - [X] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks ✅
+
+**Next Step**: Automated testing via Playwright MCP (T047-T053)
 
 ## Key Files
 - `index.html` - Main PWA (single-file architecture)

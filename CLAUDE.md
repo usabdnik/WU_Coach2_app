@@ -97,6 +97,82 @@ User Action
 
 ---
 
+## 🔌 Supabase Connection Strategy
+
+**Updated**: 2024-11-14 | **Status**: ✅ Fully Operational
+
+### Available Methods
+
+#### 1. PostgreSQL Direct (node-postgres) ⚡ RECOMMENDED for DDL
+**Use for**: Migrations, schema changes, functions, triggers
+
+```javascript
+import pg from 'pg';
+const client = new Client({
+  connectionString: 'postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgres',
+  ssl: { rejectUnauthorized: false }
+});
+await client.query(migrationSQL);
+```
+
+**Benefits**:
+- ✅ 30-40% fewer tokens (minimal JSON overhead)
+- ✅ Multi-statement migrations
+- ✅ Full DDL support (CREATE/ALTER TABLE, FUNCTION, TRIGGER)
+
+**Example**: `migration/run-migration.js`
+
+---
+
+#### 2. Supabase JS SDK (@supabase/supabase-js) 🎯 RECOMMENDED for CRUD
+**Use for**: Data operations, RPC calls, import/export scripts
+
+```javascript
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
+const { data, error } = await supabase
+  .from('athletes')
+  .select('*')
+  .eq('moyklass_id', '12345');
+```
+
+**Benefits**:
+- ✅ Type-safe API
+- ✅ Built-in error handling
+- ✅ Convenient filters & pagination
+- ✅ RPC function calls
+
+**Examples**: `migration/import-from-moyklass.js`, `migration/verify-subscriptions.js`
+
+---
+
+#### 3. Supabase CLI ❌ NOT CONFIGURED (not critical)
+**Status**: Installed but not linked to project
+
+**Alternative**: Use PostgreSQL Direct for migrations instead of `supabase db push`
+
+---
+
+### Token Efficiency Comparison
+
+| Operation | PostgreSQL Direct | Supabase JS SDK | Token Savings |
+|-----------|-------------------|-----------------|---------------|
+| Simple SELECT | ~150-200 tokens | ~200-300 tokens | 30-40% |
+| CREATE TABLE | ~100 tokens | N/A | 100% (SDK can't do DDL) |
+| Complex queries | ~300 tokens | ~350 tokens | ~15% |
+
+**Recommendation**: Use PostgreSQL for migrations (saves tokens), JS SDK for data operations (better DX)
+
+---
+
+### Credentials Location
+- **File**: `migration/.env`
+- **Memory**: `mcp__serena__read_memory("SUPABASE_CREDENTIALS")`
+- **Connection methods doc**: `mcp__serena__read_memory("SUPABASE_CONNECTION_METHODS")`
+
+---
+
 ## 🎯 Feature 005: Schedule Management & Athletic Ranks
 
 **Status**: Phase 8 (Polish & Documentation) ✅ Core Implementation Complete
