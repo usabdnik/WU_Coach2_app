@@ -79,6 +79,7 @@
 ## Git Status
 - Branch: `005-schedule-rank-subscription`
 - Latest commits:
+  - 28c6d60 Fix: Subscription filter double event listener bug
   - b0d39b1 Add: Subscription filter chip button (Phase 5 - T037)
   - 2f2ddd2 Add: Subscriptions table migration + import script extension
   - f6bbe34 Fix: Critical schedule sync bugs in Phase 8
@@ -139,8 +140,8 @@
 
 **Git commit**: f6bbe34
 
-### Phase 5: User Story 2 - Subscription Filter (T037-T053) ✅ READY FOR TESTING
-**Status**: 10/17 tasks complete (59%) - Migration applied, data imported, awaiting manual tests
+### Phase 5: User Story 2 - Subscription Filter (T037-T053) 🧪 IN TESTING
+**Status**: 11/17 tasks complete (65%) - Bug fixed, basic toggle tested, awaiting full test suite
 
 **Completed** ✅:
 - ✅ T001-T003: Infrastructure setup (subscriptions table + import script)
@@ -170,7 +171,13 @@
   - Season date calculation: Uses getCurrentSeason() (Sept 1 - Aug 31)
   - Visual indicator: chip.active CSS (line 125-128)
 
+- ✅ T047: Chip toggle test (Playwright automation)
+  - Click ON: активация фильтра, chip.active=true
+  - Click OFF: деактивация фильтра, chip.active=false
+  - No double event listener: один вызов toggleSubscriptionFilter()
+
 **Git commits**:
+- 28c6d60: Bug fix (double event listener)
 - 2f2ddd2: Infrastructure (migration + import script)
 - b0d39b1: UI (subscription filter chip)
 - e23a71b: JavaScript functions (T038-T046)
@@ -181,8 +188,43 @@
 - ✅ Function `get_subscriptions_for_season` works correctly
 - ✅ All 52 athletes have active subscriptions in current season (2025-09-01 → 2026-08-31)
 
-**Remaining** (7 tasks):
-- ⏳ T047-T053: Manual testing (7 scenarios) - READY TO TEST
+**Remaining** (6 tasks):
+- ⏳ T048: Athletes with active subscriptions shown correctly
+- ⏳ T049: Expired subscriptions handled (if overlapping with season)
+- ⏳ T050: localStorage cache works (24h expiry)
+- ⏳ T051: Offline mode uses cache gracefully
+- ⏳ T052: Supabase failure handled without breaking UI
+- ⏳ T053: Season dates calculated correctly (Sept 1 - Aug 31)
+
+### Phase 5 Bug Fix: Double Event Listener (Post-Implementation) ✅ COMPLETE
+
+**User Testing Feedback**: Subscription filter срабатывает дважды при одном клике
+
+**Root Cause**: Двойной event listener на subscription chip
+- **Inline handler**: `onclick="toggleSubscriptionFilter()"` (line 840)
+- **General handler**: `querySelectorAll('.chip')` (line 3000)
+- **Результат**: Функция вызывается 2 раза → chip toggle дважды → возвращается в исходное состояние
+
+**Solution (Option A)**: Исключить subscription-filter из general handler
+```javascript
+// БЫЛО:
+document.querySelectorAll('.chip').forEach(chip => { ... })
+
+// СТАЛО:
+document.querySelectorAll('.chip:not(.subscription-filter)').forEach(chip => { ... })
+```
+
+**Fixes Applied** (commit 28c6d60):
+1. ✅ Line 3000: Добавлен `:not(.subscription-filter)` в селектор
+2. ✅ Line 3002: Добавлен `:not(.subscription-filter)` в classList.remove
+
+**Playwright Testing**: ✅ PASSED
+- ✅ Click ON: один лог "📋 Фильтр подписок активирован", chip.active=true
+- ✅ Click OFF: один лог "📋 Фильтр подписок деактивирован", chip.active=false
+- ✅ Filter logic: 52 из 62 athletes при активном фильтре
+- ✅ Cache usage: "📦 Кэш подписок загружен: 52 записей"
+
+**Git commit**: 28c6d60
 
 **ARCHITECTURAL DECISIONS** (pre-implementation):
 
@@ -266,17 +308,18 @@ Context: specs/005-schedule-rank-subscription/SESSION_CONTEXT.md
 6. Verify filter behavior (chip active state, athlete count changes)
 7. Execute JavaScript to check getCurrentSeason() output
 
-## Progress: 88/95 tasks (93%)
+## Progress: 89/95 tasks (94%)
 - [X] Phase 1: Setup (T001-T005) - 5 tasks ✅
 - [X] Phase 2: Foundational (T006-T012) - 7 tasks ✅
 - [X] Phase 3: User Story 1 (T013-T018) - 6 tasks ✅ [Manual tests passed!]
 - [X] Phase 4: User Story 3 (T019-T036) - 18 tasks ✅ [Manual tests passed!]
-- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 10/17 tasks (59%) 🧪 READY FOR TESTING
+- [ ] Phase 5: User Story 2 (T037-T053) - Subscription filtering - 11/17 tasks (65%) 🧪 IN TESTING
 - [X] Phase 6: User Story 4 (T054-T065) - Rank start recording - 12 tasks ✅ [Manual tests passed!]
 - [X] Phase 7: User Story 5 (T066-T076) - Rank end recording - 11 tasks ✅ [Manual tests passed!]
 - [X] Phase 8: Polish (T077-T095) - Validation & documentation - 19 tasks ✅
 
-**Next Step**: Automated testing via Playwright MCP (T047-T053)
+**Latest**: Bug fix completed - subscription filter toggle работает без двойного вызова
+**Next Step**: Continue testing T048-T053 (filter logic, cache, offline mode, error handling)
 
 ## Key Files
 - `index.html` - Main PWA (single-file architecture)
