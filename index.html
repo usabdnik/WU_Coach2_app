@@ -1763,7 +1763,7 @@
                 console.log('🔄 Загрузка подписок с', seasonStart.toISOString().split('T')[0],
                            'по', seasonEnd.toISOString().split('T')[0]);
 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .rpc('get_subscriptions_for_season', {
                         p_season_start: seasonStart.toISOString().split('T')[0],
                         p_season_end: seasonEnd.toISOString().split('T')[0]
@@ -3005,6 +3005,12 @@
                     renderAthletes();
                 });
             });
+
+            // Initialize "All groups" filter as active by default
+            const allGroupsChip = document.querySelector('.chip[data-group="all"]');
+            if (allGroupsChip) {
+                allGroupsChip.classList.add('active');
+            }
 
             document.getElementById('recordsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
