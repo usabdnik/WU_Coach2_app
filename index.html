@@ -2406,6 +2406,16 @@
         async function syncWithSupabase() {
             const button = document.getElementById('syncBtn');
 
+            // Re-initialize Supabase client if SDK loaded after page init (fix race condition)
+            if (!supabaseClient && typeof window.supabase !== 'undefined') {
+                try {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase client инициализирован (delayed load)');
+                } catch (e) {
+                    console.warn('⚠️ Ошибка инициализации Supabase:', e);
+                }
+            }
+
             // Check if Supabase client is available (offline режим)
             if (!supabaseClient) {
                 console.warn('📴 Синхронизация невозможна: Supabase недоступен (offline режим)');
