@@ -29,9 +29,11 @@
 
     <!-- Supabase JS SDK (async loading for offline-first) -->
     <script
+        id="supabase-sdk"
         src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
         defer
-        onerror="console.warn('⚠️ Supabase SDK недоступен (offline режим)')">
+        onload="window.supabaseSDKLoaded = true"
+        onerror="window.supabaseSDKFailed = true; console.warn('⚠️ Supabase SDK недоступен (offline режим)')">
     </script>
 
     <style>
@@ -2405,6 +2407,30 @@
         // Sync with Supabase (NEW)
         async function syncWithSupabase() {
             const button = document.getElementById('syncBtn');
+
+            // Check if SDK is still loading
+            if (!window.supabaseSDKLoaded && !window.supabaseSDKFailed) {
+                console.log('⏳ Supabase SDK еще загружается, ожидаем...');
+                button.innerHTML = '<span class="sync-icon">⏳</span><span>Загрузка SDK...</span>';
+
+                // Wait up to 10 seconds for SDK to load
+                const maxWait = 10000;
+                const startWait = Date.now();
+                while (!window.supabaseSDKLoaded && !window.supabaseSDKFailed && (Date.now() - startWait) < maxWait) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                if (!window.supabaseSDKLoaded) {
+                    console.warn('⚠️ Таймаут загрузки Supabase SDK');
+                    button.classList.add('error');
+                    button.innerHTML = '<span class="sync-icon">⏳</span><span>SDK не загрузился</span>';
+                    setTimeout(() => {
+                        button.classList.remove('error');
+                        button.innerHTML = '<span class="sync-icon">🔄</span><span>Синхронизация</span>';
+                    }, 3000);
+                    return;
+                }
+            }
 
             // Re-initialize Supabase client if SDK loaded after page init (fix race condition)
             if (!supabaseClient && typeof window.supabase !== 'undefined') {
