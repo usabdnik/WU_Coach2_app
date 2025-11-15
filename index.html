@@ -27,8 +27,12 @@
     <link rel="apple-touch-icon" sizes="60x60" href="icons/icon-60x60.png">
     <link rel="apple-touch-icon" sizes="57x57" href="icons/icon-57x57.png">
 
-    <!-- Supabase JS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS SDK (async loading for offline-first) -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        defer
+        onerror="console.warn('⚠️ Supabase SDK недоступен (offline режим)')">
+    </script>
 
     <style>
         * {
@@ -1097,11 +1101,24 @@
     <script>
         console.log('✅ JavaScript загружен');
 
-        // Supabase Configuration
+        // Supabase Configuration (offline-first: SDK может не загрузиться)
         const SUPABASE_URL = 'https://mjkssesvhowmncyctmvs.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNjU2MzgsImV4cCI6MjA3NTc0MTYzOH0.jRoTOGiwjF79DdTFmerhpBFqu6tmHob3jwGeHJxiuO0';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('✅ Supabase client инициализирован');
+        let supabaseClient = null;
+
+        // Проверяем наличие Supabase SDK (может не загрузиться если offline)
+        if (typeof window.supabase !== 'undefined') {
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase client инициализирован (online режим)');
+            } catch (e) {
+                console.warn('⚠️ Ошибка инициализации Supabase:', e);
+                console.warn('📴 Приложение работает в offline режиме (только localStorage)');
+            }
+        } else {
+            console.warn('⚠️ Supabase SDK не загружен (offline режим)');
+            console.log('📴 Приложение использует только localStorage');
+        }
 
         // Google Sheets (legacy - будет удалено после миграции)
         const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxXRBjU4-0PBBAxzHFGkd5G7eJxP9GuStzc8q13RyN1k3sd6hHgz1ET46mhlgQSJ6-bVg/exec';
@@ -1661,6 +1678,19 @@
             renderAthletes();
             updatePendingIndicator();
             setupEventListeners();
+
+            // Регистрация Service Worker для offline-first PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker зарегистрирован:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.warn('⚠️ Ошибка регистрации Service Worker:', error);
+                    });
+            } else {
+                console.warn('⚠️ Service Worker не поддерживается браузером');
+            }
 
             if (navigator.onLine && athletesData.length === 0) {
                 syncWithSupabase(); // Switched to Supabase
@@ -2375,6 +2405,18 @@
         // Sync with Supabase (NEW)
         async function syncWithSupabase() {
             const button = document.getElementById('syncBtn');
+
+            // Check if Supabase client is available (offline режим)
+            if (!supabaseClient) {
+                console.warn('📴 Синхронизация невозможна: Supabase недоступен (offline режим)');
+                button.classList.add('error');
+                button.innerHTML = '<span class="sync-icon">📴</span><span>Offline</span>';
+                setTimeout(() => {
+                    button.classList.remove('error');
+                    button.innerHTML = '<span class="sync-icon">🔄</span><span>Синхронизация</span>';
+                }, 3000);
+                return;
+            }
 
             // Prevent concurrent syncs
             if (button.classList.contains('syncing')) {
