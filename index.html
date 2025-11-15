@@ -977,12 +977,8 @@
             <span class="search-icon">🔍</span>
             <input type="text" class="search-input" id="searchInput" placeholder="Поиск по имени или фамилии...">
         </div>
-        <div class="filter-chips">
-            <button class="chip active" data-group="all">Все группы</button>
-            <button class="chip" data-group="Начинающие">Начинающие</button>
-            <button class="chip" data-group="Средняя">Средняя</button>
-            <button class="chip" data-group="Продвинутая">Продвинутая</button>
-            <button class="chip" data-group="Элитная">Элитная</button>
+        <div class="filter-chips" id="groupFilterChips">
+            <!-- Group filter buttons will be generated dynamically from AVAILABLE_GROUPS -->
             <button class="chip subscription-filter" id="subscriptionFilterChip" onclick="toggleSubscriptionFilter()">
                 📋 Абонемент в сезоне
             </button>
@@ -1038,10 +1034,7 @@
                 <div class="form-group">
                     <label class="form-label">Группа</label>
                     <select class="form-select" id="recordsGroup">
-                        <option value="Начинающие">Начинающие</option>
-                        <option value="Средняя">Средняя</option>
-                        <option value="Продвинутая">Продвинутая</option>
-                        <option value="Элитная">Элитная</option>
+                        <!-- Options will be populated dynamically from AVAILABLE_GROUPS -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -1290,6 +1283,9 @@
         let allTimeRecords = {};
         let isSubscriptionFilterActive = false;
         let subscriptionCache = null; // {data: [...], timestamp: Date}
+
+        // Available groups (can be modified as needed)
+        const AVAILABLE_GROUPS = ['М-19', 'М-117', 'М-118', 'А-29', 'А-218', 'А-219'];
 
         // Log History System (для панели диагностики)
         let logHistory = [];
@@ -1851,6 +1847,8 @@
             migrateGoalIds();
             migrateGoalUpdatedAt();
 
+            renderGroupFilters(); // Generate group filter buttons dynamically
+            renderGroupOptions(); // Generate group options in edit form
             calculateAllTimeRecords();
             renderAthletes();
             updatePendingIndicator();
@@ -2624,7 +2622,7 @@
                 lastName: lastName,
                 firstName: firstName,
                 name: athlete.name,
-                group: athlete.group_name || 'Начинающие',
+                group: athlete.group_name || AVAILABLE_GROUPS[0],
                 schedule: athlete.schedule || '', // NEW: Schedule field (format: "Пн 18:00, Ср 19:00" OR "Самозапись")
                 rank_start: athlete.rank_start || null, // NEW: Season start rank
                 rank_end: athlete.rank_end || null, // NEW: Season end rank
@@ -3344,25 +3342,65 @@
             }
         }
 
-        // Обработчики
-        function setupEventListeners() {
-            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase); // Switched to Supabase
-            document.getElementById('searchInput').addEventListener('input', renderAthletes);
+        // Динамическая генерация опций групп в форме редактирования
+        function renderGroupOptions() {
+            const select = document.getElementById('recordsGroup');
+            select.innerHTML = ''; // Очистка
 
-            document.querySelectorAll('.chip:not(.subscription-filter)').forEach(chip => {
-                chip.addEventListener('click', (e) => {
+            AVAILABLE_GROUPS.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                select.appendChild(option);
+            });
+
+            console.log('📝 Опции групп созданы:', AVAILABLE_GROUPS);
+        }
+
+        // Динамическая генерация кнопок фильтра групп
+        function renderGroupFilters() {
+            const container = document.getElementById('groupFilterChips');
+
+            // Кнопка "Все группы"
+            const allButton = document.createElement('button');
+            allButton.className = 'chip active';
+            allButton.setAttribute('data-group', 'all');
+            allButton.textContent = 'Все группы';
+            allButton.addEventListener('click', (e) => {
+                document.querySelectorAll('.chip:not(.subscription-filter)').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = 'all';
+                renderAthletes();
+            });
+
+            // Вставляем перед кнопкой подписок
+            const subscriptionButton = document.getElementById('subscriptionFilterChip');
+            container.insertBefore(allButton, subscriptionButton);
+
+            // Кнопки для каждой группы
+            AVAILABLE_GROUPS.forEach(group => {
+                const button = document.createElement('button');
+                button.className = 'chip';
+                button.setAttribute('data-group', group);
+                button.textContent = group;
+                button.addEventListener('click', (e) => {
                     document.querySelectorAll('.chip:not(.subscription-filter)').forEach(c => c.classList.remove('active'));
                     e.target.classList.add('active');
                     currentFilter = e.target.dataset.group;
                     renderAthletes();
                 });
+                container.insertBefore(button, subscriptionButton);
             });
 
-            // Initialize "All groups" filter as active by default
-            const allGroupsChip = document.querySelector('.chip[data-group="all"]');
-            if (allGroupsChip) {
-                allGroupsChip.classList.add('active');
-            }
+            console.log('🏷️ Фильтр групп создан:', AVAILABLE_GROUPS);
+        }
+
+        // Обработчики
+        function setupEventListeners() {
+            document.getElementById('syncBtn').addEventListener('click', syncWithSupabase); // Switched to Supabase
+            document.getElementById('searchInput').addEventListener('input', renderAthletes);
+
+            // Group filter click handlers are now in renderGroupFilters()
 
             document.getElementById('recordsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
