@@ -839,6 +839,128 @@
         .subscription-filter:active {
             transform: scale(0.98);
         }
+
+        /* ============================================================================
+           Log Panel Styles (Diagnostic Logs UI)
+           ============================================================================ */
+
+        /* Log filters (chip-style tabs) */
+        .log-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .log-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .log-filter-chip {
+            background: #2a2d3a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 48px;
+            min-height: 44px;
+        }
+
+        .log-filter-chip.active {
+            background: #4c9eff;
+            color: white;
+        }
+
+        .log-filter-chip:active {
+            transform: scale(0.98);
+        }
+
+        /* Log container (scrollable) */
+        .log-container {
+            background: #0f1117;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Individual log entry */
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #1a1d29;
+            border-radius: 8px;
+            border-left: 3px solid #2a2d3a;
+            font-size: 13px;
+        }
+
+        .log-entry.log-level-error {
+            border-left-color: #dc2626;
+        }
+
+        .log-entry.log-level-warning {
+            border-left-color: #fbbf24;
+        }
+
+        .log-entry.log-level-sync {
+            border-left-color: #4c9eff;
+        }
+
+        .log-timestamp {
+            color: #6b6f82;
+            font-size: 11px;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        .log-emoji {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: #ffffff;
+            flex: 1;
+            word-wrap: break-word;
+        }
+
+        /* Log actions (bottom buttons) */
+        .log-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .log-actions .btn {
+            min-height: 48px;
+        }
+
+        /* Empty state for logs */
+        .log-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b6f82;
+        }
+
+        .log-empty-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .log-empty-text {
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -886,6 +1008,10 @@
         <button class="nav-item" data-nav="settings">
             <div class="nav-icon">⚙️</div>
             <div>Настройки</div>
+        </button>
+        <button class="nav-item" data-nav="logs" onclick="openLogPanel()">
+            <div class="nav-icon">📋</div>
+            <div>Логи</div>
         </button>
     </div>
 
@@ -1100,6 +1226,35 @@
         </div>
     </div>
 
+    <!-- Модальное окно: Панель логов (Diagnostic Logs) -->
+    <div class="modal" id="logPanelModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📋 Логи диагностики</div>
+                <button class="close-btn" onclick="closeLogPanel()">&times;</button>
+            </div>
+
+            <!-- Фильтры (chip-style tabs) -->
+            <div class="log-filters">
+                <button class="log-filter-chip active" data-level="all" onclick="filterLogs('all')">Все</button>
+                <button class="log-filter-chip" data-level="error" onclick="filterLogs('error')">Ошибки</button>
+                <button class="log-filter-chip" data-level="sync" onclick="filterLogs('sync')">Sync</button>
+                <button class="log-filter-chip" data-level="warning" onclick="filterLogs('warning')">Предупреждения</button>
+            </div>
+
+            <!-- Контейнер логов (scrollable) -->
+            <div class="log-container" id="logContainer">
+                <!-- Логи отображаются здесь динамически -->
+            </div>
+
+            <!-- Кнопки управления -->
+            <div class="log-actions">
+                <button class="btn btn-secondary" onclick="clearLogsUI()">🗑️ Очистить</button>
+                <button class="btn btn-primary" onclick="exportLogsUI()">📤 Экспорт</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         console.log('✅ JavaScript загружен');
 
@@ -1135,6 +1290,16 @@
         let allTimeRecords = {};
         let isSubscriptionFilterActive = false;
         let subscriptionCache = null; // {data: [...], timestamp: Date}
+
+        // Log History System (для панели диагностики)
+        let logHistory = [];
+        const LOG_LEVELS = {
+            INFO: 'info',
+            ERROR: 'error',
+            SYNC: 'sync',
+            WARNING: 'warning'
+        };
+        const MAX_LOG_ENTRIES = 100; // FIFO rotation
 
         // Определение текущего сезона
         function getCurrentSeason() {
@@ -1671,6 +1836,16 @@
 
             loadFromLocalStorage();
 
+            // Добавить тестовые логи для демонстрации панели (только если история пустая)
+            if (logHistory.length === 0) {
+                logEvent('info', '✅', 'Приложение запущено');
+                logEvent('sync', '📤', 'Тестовая синхронизация данных');
+                logEvent('warning', '⚠️', 'Тестовое предупреждение: проверьте подключение');
+                logEvent('error', '❌', 'Тестовая ошибка: failed to fetch');
+                logEvent('sync', '📊', 'Оптимизация очереди синхронизации');
+                console.log('📋 Добавлено 5 тестовых логов для демонстрации');
+            }
+
             // Запускаем миграции данных (если нужно)
             migrateAthleteFields();
             migrateGoalIds();
@@ -1706,12 +1881,14 @@
                 exercisesData = JSON.parse(localStorage.getItem('exercisesData') || '[]');
                 goalsData = JSON.parse(localStorage.getItem('goalsData') || '[]');
                 pendingChanges = JSON.parse(localStorage.getItem('pendingChanges') || '[]');
+                logHistory = JSON.parse(localStorage.getItem('logHistory') || '[]');
 
                 console.log('📂 Загружено из localStorage:');
                 console.log('  Ученики:', athletesData.length);
                 console.log('  Упражнения:', exercisesData.length);
                 console.log('  Цели:', goalsData.length);
                 console.log('  Несинхронизированные:', pendingChanges.length);
+                console.log('  Логи:', logHistory.length);
 
                 if (athletesData.length > 0) {
                     console.log('  Пример данных первого ученика:', athletesData[0]);
@@ -1722,6 +1899,7 @@
                 exercisesData = [];
                 goalsData = [];
                 pendingChanges = [];
+                logHistory = [];
             }
         }
 
@@ -1731,17 +1909,95 @@
                 localStorage.setItem('exercisesData', JSON.stringify(exercisesData));
                 localStorage.setItem('goalsData', JSON.stringify(goalsData));
                 localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+                localStorage.setItem('logHistory', JSON.stringify(logHistory));
                 localStorage.setItem('lastSaved', new Date().toISOString());
 
                 console.log('💾 Сохранено в localStorage:', {
                     athletes: athletesData.length,
                     exercises: exercisesData.length,
                     goals: goalsData.length,
-                    pending: pendingChanges.length
+                    pending: pendingChanges.length,
+                    logs: logHistory.length
                 });
             } catch (e) {
                 console.error('❌ Ошибка сохранения в localStorage:', e);
             }
+        }
+
+        // ============================================================================
+        // Log System API (для панели диагностики)
+        // ============================================================================
+
+        /**
+         * Записать событие в историю логов
+         * @param {string} level - Уровень лога (LOG_LEVELS.INFO | ERROR | SYNC | WARNING)
+         * @param {string} emoji - Emoji иконка для визуализации
+         * @param {string} message - Текст сообщения
+         */
+        function logEvent(level, emoji, message) {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                level: level,
+                emoji: emoji,
+                message: message
+            };
+
+            logHistory.push(entry);
+
+            // FIFO rotation: если превысили лимит, удаляем старые записи
+            if (logHistory.length > MAX_LOG_ENTRIES) {
+                logHistory = logHistory.slice(-MAX_LOG_ENTRIES);
+            }
+
+            // Автосохранение в localStorage
+            saveToLocalStorage();
+
+            // Также выводим в console для обратной совместимости
+            console.log(`${emoji} ${message}`);
+        }
+
+        /**
+         * Получить логи с фильтрацией по уровню
+         * @param {string|null} level - Уровень для фильтрации или null для всех логов
+         * @returns {Array} Отфильтрованный массив логов
+         */
+        function getFilteredLogs(level = null) {
+            if (!level || level === 'all') {
+                return logHistory;
+            }
+            return logHistory.filter(log => log.level === level);
+        }
+
+        /**
+         * Очистить всю историю логов
+         */
+        function clearLogs() {
+            logHistory = [];
+            saveToLocalStorage();
+            console.log('📋 История логов очищена');
+        }
+
+        /**
+         * Экспортировать логи в текстовый формат
+         * @returns {string} Логи в читаемом текстовом формате
+         */
+        function exportLogs() {
+            if (logHistory.length === 0) {
+                return 'Логи отсутствуют';
+            }
+
+            let output = '=== ЛОГИ ДИАГНОСТИКИ WU COACH 2 ===\n\n';
+            output += `Экспортировано: ${new Date().toLocaleString('ru-RU')}\n`;
+            output += `Всего записей: ${logHistory.length}\n\n`;
+            output += '---\n\n';
+
+            logHistory.forEach((log, index) => {
+                const timestamp = new Date(log.timestamp).toLocaleString('ru-RU');
+                output += `${index + 1}. [${timestamp}] ${log.emoji} ${log.message}\n`;
+                output += `   Уровень: ${log.level}\n\n`;
+            });
+
+            return output;
         }
 
         // ============================================================================
@@ -3409,6 +3665,130 @@
             if (!dateStr) return '';
             const date = new Date(dateStr);
             return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+        }
+
+        // ============================================================================
+        // Log Panel Functions (Diagnostic Logs UI)
+        // ============================================================================
+
+        // Открыть панель логов
+        function openLogPanel() {
+            console.log('📋 Открытие панели логов');
+            document.getElementById('logPanelModal').classList.add('show');
+            renderLogs('all'); // Показать все логи по умолчанию
+        }
+
+        // Закрыть панель логов
+        function closeLogPanel() {
+            console.log('📋 Закрытие панели логов');
+            document.getElementById('logPanelModal').classList.remove('show');
+        }
+
+        // Отрисовать логи в контейнере
+        function renderLogs(level = 'all') {
+            console.log(`📋 Рендеринг логов (level: ${level})`);
+            const container = document.getElementById('logContainer');
+            const logs = getFilteredLogs(level);
+
+            if (logs.length === 0) {
+                // Показать empty state
+                container.innerHTML = `
+                    <div class="log-empty-state">
+                        <div class="log-empty-icon">📋</div>
+                        <div class="log-empty-text">Логов пока нет</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Очистить контейнер
+            container.innerHTML = '';
+
+            // Отрендерить логи (новые сверху)
+            logs.reverse().forEach(log => {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-level-${log.level}`;
+
+                const timestamp = document.createElement('div');
+                timestamp.className = 'log-timestamp';
+                const date = new Date(log.timestamp);
+                timestamp.textContent = date.toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                const emoji = document.createElement('div');
+                emoji.className = 'log-emoji';
+                emoji.textContent = log.emoji;
+
+                const message = document.createElement('div');
+                message.className = 'log-message';
+                message.textContent = log.message;
+
+                entry.appendChild(timestamp);
+                entry.appendChild(emoji);
+                entry.appendChild(message);
+
+                container.appendChild(entry);
+            });
+        }
+
+        // Фильтровать логи по уровню
+        function filterLogs(level) {
+            console.log(`📋 Фильтр логов: ${level}`);
+
+            // Переключить active class на chip
+            const chips = document.querySelectorAll('.log-filter-chip');
+            chips.forEach(chip => {
+                if (chip.getAttribute('data-level') === level) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            // Отрендерить отфильтрованные логи
+            renderLogs(level);
+        }
+
+        // Очистить логи (UI wrapper)
+        function clearLogsUI() {
+            if (!confirm('Вы уверены, что хотите очистить все логи?')) {
+                return;
+            }
+
+            console.log('🗑️ Очистка логов через UI');
+            clearLogs(); // Вызов API функции
+            renderLogs('all'); // Обновить отображение
+            alert('✅ Логи очищены');
+        }
+
+        // Экспортировать логи (UI wrapper)
+        function exportLogsUI() {
+            console.log('📤 Экспорт логов через UI');
+            const exportText = exportLogs(); // Вызов API функции
+
+            if (!exportText || exportText.includes('Нет логов')) {
+                alert('⚠️ Нет логов для экспорта');
+                return;
+            }
+
+            // Попытка скопировать в clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(exportText)
+                    .then(() => {
+                        alert('✅ Логи скопированы в буфер обмена!\n\nМожете вставить их в любой текстовый редактор.');
+                    })
+                    .catch(err => {
+                        console.error('❌ Ошибка копирования в clipboard:', err);
+                        // Fallback: показать в alert
+                        alert('📋 Логи (скопируйте вручную):\n\n' + exportText.substring(0, 500) + '...');
+                    });
+            } else {
+                // Fallback для старых браузеров
+                alert('📋 Логи (скопируйте вручную):\n\n' + exportText.substring(0, 500) + '...');
+            }
         }
 
         setInterval(() => {
