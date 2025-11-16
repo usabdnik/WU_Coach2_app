@@ -73,16 +73,30 @@ async function getToken() {
 }
 
 /**
- * Fetch active subscriptions with pagination
+ * Fetch ALL subscriptions with pagination (not just active)
+ * Then filter by season dates client-side
  */
 async function fetchActiveSubscriptions(token) {
   const subscriptions = [];
   const limit = 100;
   let offset = 0;
 
+  // Calculate current season: Sept 1 - Aug 31
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth(); // 0-indexed
+  
+  // Season starts Sept 1
+  // If we're before September, season started last year
+  const seasonStartYear = currentMonth < 8 ? currentYear - 1 : currentYear;
+  const seasonStart = new Date(seasonStartYear, 8, 1); // Sept 1
+  const seasonEnd = today; // Today
+  
+  console.log(`📅 Сезон: ${seasonStart.toISOString().split('T')[0]} - ${seasonEnd.toISOString().split('T')[0]}`);
+
   while (true) {
+    // Fetch ALL subscriptions (no statusId filter)
     const params = new URLSearchParams({
-      'statusId[]': '2', // Active status
       limit: limit.toString(),
       offset: offset.toString()
     });
@@ -106,7 +120,35 @@ async function fetchActiveSubscriptions(token) {
     await sleep(250); // Rate limiting
   }
 
-  return subscriptions;
+  console.log(`📊 Всего абонементов в CRM: ${subscriptions.length}`);
+
+  // Filter: keep only subscriptions that were active during current season
+  // A subscription overlaps with season if:
+  // - endDate >= seasonStart (subscription didn't end before season)
+  // - beginDate <= seasonEnd (subscription started before or during season)
+  const seasonSubscriptions = subscriptions.filter(sub => {
+    if (!sub.beginDate) return false; // Invalid subscription
+    
+    const subStart = new Date(sub.beginDate);
+    const subEnd = sub.endDate ? new Date(sub.endDate) : new Date('2099-12-31'); // If no end date, consider it ongoing
+    
+    // Check overlap with season
+    const overlaps = subEnd >= seasonStart && subStart <= seasonEnd;
+    
+    return overlaps;
+  });
+
+  console.log(`✅ Абонементов в текущем сезоне: ${seasonSubscriptions.length}`);
+  
+  // Log status distribution
+  const statusCounts = {};
+  seasonSubscriptions.forEach(sub => {
+    const status = sub.statusId || 'unknown';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+  console.log('📋 По статусам:', statusCounts);
+
+  return seasonSubscriptions;
 }
 
 /**
@@ -182,6 +224,20 @@ function isSubscriptionInSeason(subscription, season) {
 }
 
 /**
+ * Map Moyklass subscription status to database status
+ * statusId: 1=paused, 2=active, 3=expired, 4=cancelled
+ */
+function mapSubscriptionStatus(statusId) {
+  const statusMap = {
+    '1': 'paused',
+    '2': 'active',
+    '3': 'expired',
+    '4': 'cancelled'
+  };
+  return statusMap[String(statusId)] || 'unknown';
+}
+
+/**
  * Parse full name to lastName + firstName
  */
 function parseFullName(fullName) {
@@ -248,7 +304,7 @@ async function syncSubscriptionsToSupabase(athleteId, subscriptions) {
         moyklass_subscription_id: String(sub.id),
         start_date: sub.beginDate || null,
         end_date: sub.endDate || null,
-        status: sub.statusId === '2' ? 'active' : 'expired'
+        status: mapSubscriptionStatus(sub.statusId)
       };
 
       if (existing) {
