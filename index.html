@@ -2649,7 +2649,7 @@
                 lastName: lastName,
                 firstName: firstName,
                 name: athlete.name,
-                group: athlete.group_name || AVAILABLE_GROUPS[0],
+                group: athlete.group_name || null, // Allow null for athletes without assigned groups (don't default to AVAILABLE_GROUPS[0])
                 schedule: athlete.schedule || '', // NEW: Schedule field (format: "Пн 18:00, Ср 19:00" OR "Самозапись")
                 rank_start: athlete.rank_start || null, // NEW: Season start rank
                 rank_end: athlete.rank_end || null, // NEW: Season end rank
