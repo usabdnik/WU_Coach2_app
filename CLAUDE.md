@@ -27,9 +27,9 @@
 
 ### Core Architectural Principles
 
-1. **Single-File HTML PWA** - Everything in `coach-pwa-app (7).html`
-2. **Zero Dependencies** - No npm, no frameworks, pure vanilla JS (PWA runtime only; one-time migration/development tooling exempt)
-3. **Offline-First** - localStorage primary, Google Sheets sync secondary
+1. **Single-File HTML PWA** - Everything in `index.html`
+2. **Zero Dependencies** - No npm packages in PWA runtime; migration/dev tooling exempt (see constitution.md)
+3. **Offline-First** - localStorage primary, Supabase sync secondary
 4. **Mobile-Only** - Touch-optimized, no desktop considerations
 5. **Dark Theme** - Fixed color palette, no theming system
 6. **Russian Language** - No internationalization needed
@@ -51,19 +51,21 @@
 
 ### Technology Stack
 - **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3
-- **Backend**: Google Apps Script Web App
-- **Storage**: localStorage API
+- **Backend**: Supabase PostgreSQL (primary), Moyklass CRM (data source)
+- **Storage**: localStorage API (offline), Supabase (cloud)
 - **State**: Plain JS objects (no state library)
 - **Styling**: Inline CSS with BEM-inspired naming
 
 ### File Structure
 ```
-coach-pwa-app (7).html
-├── Lines 1-10    : Meta tags (PWA, viewport, theme)
-├── Lines 11-524  : CSS styles (dark theme, mobile-first)
-├── Lines 526-619 : HTML markup (header, lists, modals, nav)
-└── Lines 621-1350: JavaScript (state, data, UI, sync)
+index.html
+├── Lines 1-15    : Meta tags (PWA, viewport, theme) + Supabase SDK
+├── Lines 16-550  : CSS styles (dark theme, mobile-first)
+├── Lines 551-650 : HTML markup (header, lists, modals, nav)
+└── Lines 651+    : JavaScript (state, data, UI, Supabase sync)
 ```
+
+**Note**: Line numbers approximate. File evolves with features.
 
 ### Data Architecture
 ```javascript
@@ -90,10 +92,12 @@ User Action
       → Save to localStorage (immediate)
         → Display pending indicator (⏳)
           → Manual sync button
-            → POST to Google Apps Script
+            → POST to Supabase (supabaseClient.from('table').upsert())
               → Clear pendingChanges on success
-                → Reload fresh data
+                → Reload fresh data from Supabase
 ```
+
+**Background Sync**: GitHub Actions runs every 15min to sync Moyklass CRM → Supabase
 
 ---
 
@@ -521,12 +525,18 @@ Verify contrast: https://webaim.org/resources/contrastchecker/
 
 ## 📚 Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `coach-pwa-app (7).html` | Complete application (HTML+CSS+JS) |
-| `.specify/memory/constitution.md` | Technical architecture rules |
+| File/Directory | Purpose |
+|----------------|---------|
+| `index.html` | Complete PWA application (HTML+CSS+JS) |
+| `.specify/memory/constitution.md` | Technical architecture rules (v1.0.0) |
 | `.specify/memory/ULTRATHINK_MODE.md` | Permanent ultrathink configuration |
-| `CLAUDE.md` | This file - development guide |
+| `CLAUDE.md` | This file - AI development guide |
+| `docs/SUPABASE.md` | Supabase integration complete guide |
+| `docs/TESTING.md` | Testing instructions and protocols |
+| `docs/archive/` | Historical logs (Supabase migration, etc.) |
+| `specs/000-006/` | Feature specifications (SpecKit framework) |
+| `migration/` | Database migration scripts (Node.js) |
+| `supabase/migrations/` | SQL schema migrations |
 | `.git/` | Version control history |
 
 ---
@@ -622,8 +632,26 @@ Before committing code changes:
 - Supabase PostgreSQL 15+ (remote primary), localStorage (offline cache) (005-schedule-rank-subscription)
 
 ## Recent Changes
-- 001-goal-editing-athlete-sync: Added Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + None (zero dependencies per constitution - no npm packages, frameworks, or libraries)
-- Следуй методологии SpecKit при разработке проекта, используя команды в правильной последовательности:
+
+### 2025-11-23: Project Structure Optimization
+- ✅ Consolidated Supabase documentation → `docs/SUPABASE.md`
+- ✅ Moved historical logs → `docs/archive/` (6 files with dates)
+- ✅ Moved `TESTING.md` → `docs/TESTING.md`
+- ✅ Renamed `specs/001-goals-api-backend` → `specs/000-goals-api-backend` (fixed duplicate prefix)
+- ✅ Updated `constitution.md` with Dependency Policy (runtime vs dev dependencies)
+- ✅ Verified `migration/` scripts (all preserved for future debugging)
+- ✅ Updated `CLAUDE.md` with new file structure
+
+### Previous Features
+- 006-dynamic-groups: Dynamic group system (М-19, М-117, etc.) ✅ Complete
+- 005-schedule-rank-subscription: Schedule & athletic ranks ✅ Complete
+- 004-supabase-migration: Migrated from Google Sheets to Supabase ✅ Complete
+
+---
+
+## SpecKit Methodology
+
+Следуй методологии SpecKit при разработке проекта, используя команды в правильной последовательности:
 
 ПОРЯДОК РАБОТЫ:
 1. /constitution - Создай конституцию проекта с принципами разработки

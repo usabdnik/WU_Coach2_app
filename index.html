@@ -1045,32 +1045,56 @@
                     <label class="form-label">Разряд (начало сезона)</label>
                     <select class="form-select" id="recordsRankStart">
                         <option value="">(Не указано)</option>
-                        <option value="Без разряда">Без разряда</option>
-                        <option value="III юношеский разряд">III юношеский разряд</option>
-                        <option value="II юношеский разряд">II юношеский разряд</option>
-                        <option value="I юношеский разряд">I юношеский разряд</option>
-                        <option value="III взрослый разряд">III взрослый разряд</option>
-                        <option value="II взрослый разряд">II взрослый разряд</option>
-                        <option value="I взрослый разряд">I взрослый разряд</option>
-                        <option value="КМС">КМС</option>
-                        <option value="МС">МС</option>
-                        <option value="МСМК">МСМК</option>
+                        <option value="SPIRIT 1 Beginner">SPIRIT 1 Beginner</option>
+                        <option value="SPIRIT 1 Diligent">SPIRIT 1 Diligent</option>
+                        <option value="SPIRIT 1 Prepared">SPIRIT 1 Prepared</option>
+                        <option value="SPIRIT 2">SPIRIT 2</option>
+                        <option value="SPIRIT 3">SPIRIT 3</option>
+                        <option value="SPIRIT 4">SPIRIT 4</option>
+                        <option value="SPIRIT 5">SPIRIT 5</option>
+                        <option value="FREESTYLE">FREESTYLE</option>
+                        <option value="FREESTYLE 6">FREESTYLE 6</option>
+                        <option value="FREESTYLE 7">FREESTYLE 7</option>
+                        <option value="FREESTYLE 8">FREESTYLE 8</option>
+                        <option value="FREESTYLE 9">FREESTYLE 9</option>
+                        <option value="FREESTYLE 10">FREESTYLE 10</option>
+                        <option value="BASE 2">BASE 2</option>
+                        <option value="BASE 3">BASE 3</option>
+                        <option value="BASE 4">BASE 4</option>
+                        <option value="BASE 5">BASE 5</option>
+                        <option value="BASE 6">BASE 6</option>
+                        <option value="BASE 7">BASE 7</option>
+                        <option value="BASE 8">BASE 8</option>
+                        <option value="BASE 9">BASE 9</option>
+                        <option value="BASE 10">BASE 10</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Разряд (конец сезона)</label>
                     <select class="form-select" id="recordsRankEnd">
                         <option value="">(Не указано)</option>
-                        <option value="Без разряда">Без разряда</option>
-                        <option value="III юношеский разряд">III юношеский разряд</option>
-                        <option value="II юношеский разряд">II юношеский разряд</option>
-                        <option value="I юношеский разряд">I юношеский разряд</option>
-                        <option value="III взрослый разряд">III взрослый разряд</option>
-                        <option value="II взрослый разряд">II взрослый разряд</option>
-                        <option value="I взрослый разряд">I взрослый разряд</option>
-                        <option value="КМС">КМС</option>
-                        <option value="МС">МС</option>
-                        <option value="МСМК">МСМК</option>
+                        <option value="SPIRIT 1 Beginner">SPIRIT 1 Beginner</option>
+                        <option value="SPIRIT 1 Diligent">SPIRIT 1 Diligent</option>
+                        <option value="SPIRIT 1 Prepared">SPIRIT 1 Prepared</option>
+                        <option value="SPIRIT 2">SPIRIT 2</option>
+                        <option value="SPIRIT 3">SPIRIT 3</option>
+                        <option value="SPIRIT 4">SPIRIT 4</option>
+                        <option value="SPIRIT 5">SPIRIT 5</option>
+                        <option value="FREESTYLE">FREESTYLE</option>
+                        <option value="FREESTYLE 6">FREESTYLE 6</option>
+                        <option value="FREESTYLE 7">FREESTYLE 7</option>
+                        <option value="FREESTYLE 8">FREESTYLE 8</option>
+                        <option value="FREESTYLE 9">FREESTYLE 9</option>
+                        <option value="FREESTYLE 10">FREESTYLE 10</option>
+                        <option value="BASE 2">BASE 2</option>
+                        <option value="BASE 3">BASE 3</option>
+                        <option value="BASE 4">BASE 4</option>
+                        <option value="BASE 5">BASE 5</option>
+                        <option value="BASE 6">BASE 6</option>
+                        <option value="BASE 7">BASE 7</option>
+                        <option value="BASE 8">BASE 8</option>
+                        <option value="BASE 9">BASE 9</option>
+                        <option value="BASE 10">BASE 10</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -2256,20 +2280,23 @@
 
         // T057: Get rank icon emoji based on rank level
         function getRankIcon(rank) {
-            if (!rank || rank === '' || rank === 'Без разряда') {
+            if (!rank || rank === '') {
                 return '🔰'; // Beginner shield
             }
-            if (rank.includes('юношеский')) {
-                return '🥉'; // Bronze for youth ranks
+            if (rank.includes('SPIRIT 1')) {
+                return '🌱'; // Sprout for SPIRIT 1 levels
             }
-            if (rank.includes('III взрослый') || rank.includes('II взрослый')) {
-                return '🥈'; // Silver for adult 3rd/2nd
+            if (rank.includes('SPIRIT')) {
+                return '⭐'; // Star for SPIRIT 2-5
             }
-            if (rank.includes('I взрослый') || rank === 'КМС') {
-                return '🥇'; // Gold for adult 1st and CMS
+            if (rank === 'FREESTYLE') {
+                return '🎯'; // Target for base FREESTYLE
             }
-            if (rank === 'МС' || rank === 'МСМК') {
-                return '🏆'; // Trophy for Master of Sport
+            if (rank.includes('FREESTYLE')) {
+                return '🔥'; // Fire for FREESTYLE 6-10
+            }
+            if (rank.includes('BASE')) {
+                return '💎'; // Diamond for BASE 2-10
             }
             return '🔰'; // Default
         }
@@ -3415,8 +3442,10 @@
                 const rankEndValue = document.getElementById('recordsRankEnd').value;
 
                 // T083: Validate rank values
-                const validRanks = ['', 'Без разряда', 'III юношеский разряд', 'II юношеский разряд', 'I юношеский разряд',
-                                   'III взрослый разряд', 'II взрослый разряд', 'I взрослый разряд', 'КМС', 'МС', 'МСМК'];
+                const validRanks = ['', 'SPIRIT 1 Beginner', 'SPIRIT 1 Diligent', 'SPIRIT 1 Prepared',
+                                   'SPIRIT 2', 'SPIRIT 3', 'SPIRIT 4', 'SPIRIT 5',
+                                   'FREESTYLE', 'FREESTYLE 6', 'FREESTYLE 7', 'FREESTYLE 8', 'FREESTYLE 9', 'FREESTYLE 10',
+                                   'BASE 2', 'BASE 3', 'BASE 4', 'BASE 5', 'BASE 6', 'BASE 7', 'BASE 8', 'BASE 9', 'BASE 10'];
                 if (!validRanks.includes(rankStartValue)) {
                     alert(`⚠️ Неверный разряд (начало сезона): ${rankStartValue}`);
                     return;
