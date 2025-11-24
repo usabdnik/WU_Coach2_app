@@ -2185,12 +2185,28 @@
             }
 
             // Apply search and group filters first
+            console.log('🔍 DEBUG renderAthletes(): athletesData.length =', athletesData.length);
+            console.log('🔍 DEBUG renderAthletes(): currentFilter =', currentFilter);
+            console.log('🔍 DEBUG renderAthletes(): searchTerm =', searchTerm);
+            
             let filtered = athletesData.filter(a => {
                 const matchesSearch = a.lastName.toLowerCase().includes(searchTerm) ||
                                     a.firstName.toLowerCase().includes(searchTerm);
-                const matchesFilter = currentFilter === 'all' || a.group === currentFilter;
+                
+                // ✅ Обработка фильтра групп с поддержкой "(Без группы)"
+                let matchesFilter;
+                if (currentFilter === 'all') {
+                    matchesFilter = true; // Показать всех
+                } else if (currentFilter === 'no-group') {
+                    matchesFilter = !a.group || a.group === '' || a.group === null; // Без группы
+                } else {
+                    matchesFilter = a.group === currentFilter; // Конкретная группа
+                }
+                
                 return matchesSearch && matchesFilter;
             });
+            
+            console.log('🔍 DEBUG renderAthletes(): filtered.length после фильтра =', filtered.length);
 
             // T045: Apply subscription filter (async)
             filtered = await filterBySubscriptionHistory(filtered);
@@ -2822,7 +2838,15 @@
                 // Step 4: Save to localStorage
                 saveToLocalStorage();
                 calculateAllTimeRecords();
+                
+                // 🔍 DEBUG: Log data before render
+                console.log('🔍 DEBUG: athletesData перед renderAthletes():', athletesData.length);
+                console.log('🔍 DEBUG: Первый спортсмен:', athletesData[0]);
+                
                 renderAthletes();
+                
+                // 🔍 DEBUG: Log after render
+                console.log('🔍 DEBUG: renderAthletes() вызван успешно');
 
                 // Success state
                 button.classList.remove('syncing');
@@ -3374,6 +3398,14 @@
             const select = document.getElementById('recordsGroup');
             select.innerHTML = ''; // Очистка
 
+            // ✅ Добавляем опцию "Без группы" (group = null)
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = '(Без группы)';
+            emptyOption.style.color = '#8b8f9f'; // Серый цвет
+            select.appendChild(emptyOption);
+
+            // Добавляем все группы из AVAILABLE_GROUPS
             AVAILABLE_GROUPS.forEach(group => {
                 const option = document.createElement('option');
                 option.value = group;
@@ -3381,7 +3413,7 @@
                 select.appendChild(option);
             });
 
-            console.log('📝 Опции групп созданы:', AVAILABLE_GROUPS);
+            console.log('📝 Опции групп созданы: "(Без группы)" +', AVAILABLE_GROUPS);
         }
 
         // Динамическая генерация кнопок фильтра групп
@@ -3404,6 +3436,20 @@
             const subscriptionButton = document.getElementById('subscriptionFilterChip');
             container.insertBefore(allButton, subscriptionButton);
 
+            // ✅ Кнопка "(Без группы)" для спортсменов без группы
+            const noGroupButton = document.createElement('button');
+            noGroupButton.className = 'chip';
+            noGroupButton.setAttribute('data-group', 'no-group');
+            noGroupButton.textContent = '(Без группы)';
+            noGroupButton.style.color = '#8b8f9f'; // Серый цвет
+            noGroupButton.addEventListener('click', (e) => {
+                document.querySelectorAll('.chip:not(.subscription-filter)').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = 'no-group'; // Специальное значение для фильтра
+                renderAthletes();
+            });
+            container.insertBefore(noGroupButton, subscriptionButton);
+
             // Кнопки для каждой группы
             AVAILABLE_GROUPS.forEach(group => {
                 const button = document.createElement('button');
@@ -3419,7 +3465,7 @@
                 container.insertBefore(button, subscriptionButton);
             });
 
-            console.log('🏷️ Фильтр групп создан:', AVAILABLE_GROUPS);
+            console.log('🏷️ Фильтр групп создан: "Все группы", "(Без группы)", +', AVAILABLE_GROUPS);
         }
 
         // Обработчики
