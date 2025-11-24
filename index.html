@@ -2810,7 +2810,7 @@
                             </div>
                         </div>
                         <div class="athlete-info">
-                            <div class="info-item">${athlete.group}</div>
+                            <div class="info-item">${athlete.group_name}</div>
                             <div class="info-item">
                                 <span class="status-badge ${athlete.active === 'Да' ? '' : 'inactive'}">
                                     ${athlete.active === 'Да' ? 'Активен' : 'Неактивен'}
@@ -3116,7 +3116,7 @@
 
             document.getElementById('recordsModalTitle').textContent = `${athlete.lastName} ${athlete.firstName}`;
             document.getElementById('recordsAthleteId').value = athlete.id;
-            document.getElementById('recordsGroup').value = athlete.group;
+            document.getElementById('recordsGroup').value = athlete.group_name;
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
             document.getElementById('recordsRankStart').value = athlete.rank_start || '';
             document.getElementById('recordsRankEnd').value = athlete.rank_end || '';
@@ -4039,7 +4039,7 @@
                 if (!athlete) return;
 
                 // Обновляем группу, расписание и разряды
-                athlete.group = document.getElementById('recordsGroup').value;
+                athlete.group_name = document.getElementById('recordsGroup').value;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
                 const rankStartValue = document.getElementById('recordsRankStart').value;
                 const rankEndValue = document.getElementById('recordsRankEnd').value;
@@ -4085,7 +4085,7 @@
                 // Добавляем в очередь на синхронизацию
                 const studentData = {
                     id: athlete.id,
-                    group: athlete.group,
+                    group: athlete.group_name,
                     schedule: athlete.schedule,
                     rank_start: athlete.rank_start,
                     rank_end: athlete.rank_end,
@@ -4470,7 +4470,7 @@
             console.log(`📊 Расчёт статистики для группы: ${groupName}`);
             
             // Получить спортсменов в группе
-            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+            const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
             const athleteCount = groupAthletes.length;
             
             console.log(`📊 Найдено ${athleteCount} спортсменов в группе ${groupName}`);
@@ -4582,7 +4582,7 @@
             }
             
             // Получить список спортсменов группы
-            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+            const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
             
             // Создать HTML для списка упражнений со средними результатами
             const exercisesList = Object.keys(stats.averagePerformance).length > 0
@@ -4714,7 +4714,7 @@
 
             // Fix: Calculate total athletes with groups
             const athletesWithGroup = athletesData.filter(athlete =>
-                athlete.group && athlete.group !== '' && athlete.group !== null && athlete.group !== 'undefined'
+                athlete.group_name && athlete.group_name !== '' && athlete.group_name !== null && athlete.group_name !== 'undefined'
             );
             const totalWithGroupCount = athletesWithGroup.length;
 
@@ -4796,10 +4796,10 @@
             console.log('📊 Получение списка спортсменов без группы');
             
             const athletesWithoutGroup = athletesData.filter(athlete => {
-                return !athlete.group || 
-                       athlete.group === '' || 
-                       athlete.group === null || 
-                       athlete.group === 'undefined';
+                return !athlete.group_name || 
+                       athlete.group_name === '' || 
+                       athlete.group_name === null || 
+                       athlete.group_name === 'undefined';
             });
             
             console.log(`📊 Найдено ${athletesWithoutGroup.length} спортсменов без группы`);
@@ -4881,7 +4881,7 @@
             }
             
             // Обновить группу
-            athlete.group = groupName;
+            athlete.group_name = groupName;
             
             // Сохранить в localStorage
             localStorage.setItem('athletesData', JSON.stringify(athletesData));
@@ -5053,7 +5053,7 @@
             
             const groupStats = AVAILABLE_GROUPS.map(groupName => {
                 // Получить спортсменов группы
-                const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+                const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
 
                 // Fix: Find exercise ID from exerciseName
                 const exerciseData = exercisesData.find(e => e.name === exerciseName);
