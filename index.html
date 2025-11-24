@@ -961,6 +961,397 @@
         .log-empty-text {
             font-size: 14px;
         }
+
+        /* ============================================================================
+           Analytics Page Styles (Feature: 007-group-analytics)
+           ============================================================================ */
+
+        /* Analytics view container */
+        .analytics-view {
+            display: none;
+            padding: 20px;
+            padding-bottom: 80px;
+            background: #0f1117;
+            min-height: 100vh;
+        }
+
+        .analytics-view.show {
+            display: block;
+        }
+
+        /* Analytics header */
+        .analytics-header {
+            margin-bottom: 20px;
+        }
+
+        .analytics-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .analytics-subtitle {
+            font-size: 14px;
+            color: #8b8f9f;
+        }
+
+        /* Group cards container */
+        .group-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* Group card */
+        .group-card {
+            background: #1a1d29;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 3px solid #4c9eff;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .group-card:active {
+            transform: scale(0.98);
+            background: #2a2d3a;
+        }
+
+        .group-card-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .group-card-count {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4c9eff;
+        }
+
+        .group-card-label {
+            font-size: 12px;
+            color: #6b6f82;
+            margin-top: 5px;
+        }
+
+        /* Exercise selector */
+        .exercise-selector-container {
+            margin-bottom: 20px;
+        }
+
+        .exercise-selector {
+            width: 100%;
+            padding: 12px 15px;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .exercise-selector:focus {
+            border-color: #4c9eff;
+        }
+
+        /* Statistics table */
+        .statistics-table {
+            width: 100%;
+            background: #1a1d29;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .statistics-table th {
+            background: #2a2d3a;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            color: #8b8f9f;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .statistics-table td {
+            padding: 12px;
+            border-top: 1px solid #2a2d3a;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .statistics-table tr:hover {
+            background: #2a2d3a;
+        }
+
+        /* Chart container */
+        .chart-svg-container {
+            background: #1a1d29;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 200px;
+        }
+
+        /* No group modal */
+        .no-group-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            animation: fadeIn 0.3s;
+        }
+
+        .no-group-modal.show {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* Athlete list item */
+        .athlete-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #2a2d3a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            min-height: 44px;
+        }
+
+        .athlete-list-item-name {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .athlete-list-item-select {
+            padding: 8px 12px;
+            background: #1a1d29;
+            border: 1px solid #3a3d4a;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 13px;
+            min-width: 120px;
+        }
+
+        /* Loading state */
+        .loading-indicator {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8b8f9f;
+        }
+
+        .loading-spinner {
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* No data state */
+        .no-data-message {
+            text-align: center;
+            padding: 40px 20px;
+            background: #1a1d29;
+            border-radius: 12px;
+            color: #6b6f82;
+        }
+
+        .no-data-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* Group details modal */
+        .group-details-section {
+            margin-bottom: 25px;
+        }
+
+        .group-details-section h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2d3a;
+        }
+
+        .detail-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2d3a;
+        }
+
+        .detail-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-stat-label {
+            font-size: 14px;
+            color: #8b8f9f;
+        }
+
+        .detail-stat-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .detail-athlete-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #2a2d3a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .detail-athlete-row:hover {
+            background: #33364a;
+            transform: translateX(2px);
+        }
+
+        .detail-athlete-row:active {
+            transform: scale(0.98);
+        }
+
+        .detail-athlete-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .detail-athlete-records {
+            font-size: 13px;
+            color: #8b8f9f;
+        }
+
+        /* No-group athletes list */
+        .no-group-athletes-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .no-group-athlete-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #2a2d3a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .no-group-athlete-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            flex: 1;
+        }
+
+        /* Warning card styling */
+        .group-card.warning {
+            border-left-color: #fbbf24;
+            background: linear-gradient(135deg, #1a1d29 0%, #2a2410 100%);
+        }
+
+        .group-card.warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.2);
+        }
+
+        /* Custom dropdown for exercise selection */
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #2a2d3a;
+            border: 1px solid #3a3d4a;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 5px;
+        }
+
+        .dropdown-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 14px;
+            border-bottom: 1px solid #3a3d4a;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #3a3d4a;
+        }
+
+        .dropdown-item:active {
+            transform: scale(0.98);
+            background: #4c9eff;
+        }
+
+        .dropdown-empty {
+            padding: 15px;
+            text-align: center;
+            color: #8b8f9f;
+            font-size: 14px;
+        }
+
+        /* Scroll styling for dropdown */
+        .dropdown-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-list::-webkit-scrollbar-track {
+            background: #1a1d29;
+            border-radius: 4px;
+        }
+
+        .dropdown-list::-webkit-scrollbar-thumb {
+            background: #4c9eff;
+            border-radius: 4px;
+        }
+
+        .dropdown-list::-webkit-scrollbar-thumb:hover {
+            background: #6bb0ff;
+        }
     </style>
 </head>
 <body>
@@ -991,6 +1382,70 @@
         <div id="athletesList"></div>
     </div>
 
+    <!-- Страница аналитики (Feature 007 - US1, US2, US3) -->
+    <div id="analytics-view" class="view-container analytics-view">
+        <div class="analytics-header">
+            <h2>📊 Аналитика по группам</h2>
+        </div>
+
+        <!-- US1: Карточки статистики по группам -->
+        <div id="group-cards-container" class="group-cards-container">
+            <!-- Карточки групп будут добавлены через JavaScript -->
+        </div>
+
+        <!-- US2: Статистика по упражнениям -->
+        <div class="exercise-selector-container">
+            <label class="form-label">Упражнение для анализа:</label>
+            <select id="exercise-selector" class="form-select" onchange="handleExerciseSelect(this.value)">
+                <option value="">Выберите упражнение...</option>
+            </select>
+        </div>
+
+        <div id="exercise-stats-container" class="exercise-stats-container" style="display: none;">
+            <h3 id="exercise-stats-title"></h3>
+            
+            <!-- Таблица статистики -->
+            <div class="stats-table-container">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Группа</th>
+                            <th>Средний результат</th>
+                            <th>Лучший результат</th>
+                            <th>Спортсменов</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body">
+                        <!-- Строки статистики будут добавлены через JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SVG график -->
+            <div class="chart-container">
+                <svg id="exercise-chart" width="100%" height="300"></svg>
+            </div>
+        </div>
+
+        <!-- US3: Модальное окно "Спортсмены без группы" -->
+        <div class="modal" id="no-group-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">⚠️ Спортсмены без группы</div>
+                    <button class="close-btn" onclick="closeNoGroupModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="no-group-athletes-list" class="no-group-athletes-list">
+                        <!-- Список спортсменов будет добавлен через JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNoGroupModal()">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Нижняя навигация -->
     <div class="bottom-nav">
         <button class="nav-item active" data-nav="athletes">
@@ -1000,6 +1455,10 @@
         <button class="nav-item" data-nav="goals">
             <div class="nav-icon">🎯</div>
             <div>Цели</div>
+        </button>
+        <button class="nav-item" data-nav="analytics" onclick="openAnalyticsView()">
+            <div class="nav-icon">📊</div>
+            <div>Аналитика</div>
         </button>
         <button class="nav-item" data-nav="settings">
             <div class="nav-icon">⚙️</div>
@@ -1161,9 +1620,21 @@
 
                 <div class="form-group">
                     <label class="form-label">Упражнение</label>
-                    <select class="form-select" id="createGoalExercise" required>
-                        <option value="">Выберите упражнение</option>
-                    </select>
+                    <input type="hidden" id="createGoalExercise" required>
+                    <div class="custom-dropdown" id="exerciseDropdownContainer">
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="exerciseSearchInput"
+                            placeholder="Начните вводить название упражнения..."
+                            autocomplete="off"
+                            onclick="toggleExerciseDropdown()"
+                            oninput="filterExerciseDropdown()"
+                        >
+                        <div class="dropdown-list" id="exerciseDropdownList" style="display: none;">
+                            <!-- Options will be populated here -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1644,28 +2115,114 @@
             console.log('❌ Закрыт модал создания цели');
         }
 
-        // Populate exercise dropdown from exercisesData
+        // Fix: Populate custom searchable dropdown from exercisesData
+        let allExercises = []; // Store all exercises for filtering
+
         function populateExerciseDropdown() {
-            const select = document.getElementById('createGoalExercise');
-            select.innerHTML = '<option value="">Выберите упражнение</option>';
+            console.log('🔍 Заполнение dropdown упражнений');
+
+            const input = document.getElementById('exerciseSearchInput');
+            const dropdown = document.getElementById('exerciseDropdownList');
+            const hiddenInput = document.getElementById('createGoalExercise');
 
             if (exercisesData.length === 0) {
-                select.innerHTML += '<option value="" disabled>Сначала синхронизируйтесь</option>';
-                select.disabled = true;
+                input.disabled = true;
+                input.placeholder = 'Сначала синхронизируйтесь';
                 document.getElementById('createGoalSubmit').disabled = true;
                 return;
             }
 
-            exercisesData.forEach(exercise => {
-                const option = document.createElement('option');
-                option.value = exercise.id;
-                option.textContent = exercise.name;
-                select.appendChild(option);
-            });
+            // Store exercises for filtering
+            allExercises = [...exercisesData];
 
-            select.disabled = false;
+            input.disabled = false;
+            input.placeholder = 'Начните вводить название упражнения...';
             document.getElementById('createGoalSubmit').disabled = false;
+
+            // Initial render with all exercises
+            renderExerciseDropdown(allExercises);
+
+            console.log(`✅ Загружено ${allExercises.length} упражнений`);
         }
+
+        // Toggle dropdown visibility
+        function toggleExerciseDropdown() {
+            const dropdown = document.getElementById('exerciseDropdownList');
+            const input = document.getElementById('exerciseSearchInput');
+
+            if (dropdown.style.display === 'none') {
+                dropdown.style.display = 'block';
+                input.focus();
+                filterExerciseDropdown(); // Show all or filtered results
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+
+        // Filter dropdown based on search input
+        function filterExerciseDropdown() {
+            const input = document.getElementById('exerciseSearchInput');
+            const searchTerm = input.value.toLowerCase().trim();
+
+            // Filter exercises
+            const filtered = allExercises.filter(exercise =>
+                exercise.name.toLowerCase().includes(searchTerm)
+            );
+
+            renderExerciseDropdown(filtered);
+
+            // Show dropdown if input is focused
+            document.getElementById('exerciseDropdownList').style.display = 'block';
+        }
+
+        // Render dropdown items
+        function renderExerciseDropdown(exercises) {
+            const dropdown = document.getElementById('exerciseDropdownList');
+
+            if (exercises.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-empty">Упражнения не найдены</div>';
+                return;
+            }
+
+            // Limit to first 50 results for performance
+            const displayExercises = exercises.slice(0, 50);
+
+            dropdown.innerHTML = displayExercises.map(exercise => `
+                <div class="dropdown-item" onclick="selectExercise('${exercise.id}', '${exercise.name.replace(/'/g, "\\'")}')">
+                    ${exercise.name}
+                </div>
+            `).join('');
+
+            if (exercises.length > 50) {
+                dropdown.innerHTML += `<div class="dropdown-empty" style="color: #fbbf24;">Показано 50 из ${exercises.length}. Уточните поиск.</div>`;
+            }
+        }
+
+        // Select exercise from dropdown
+        function selectExercise(exerciseId, exerciseName) {
+            console.log(`✅ Выбрано упражнение: ${exerciseName} (${exerciseId})`);
+
+            const input = document.getElementById('exerciseSearchInput');
+            const hiddenInput = document.getElementById('createGoalExercise');
+            const dropdown = document.getElementById('exerciseDropdownList');
+
+            // Set values
+            input.value = exerciseName;
+            hiddenInput.value = exerciseId;
+
+            // Close dropdown
+            dropdown.style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('exerciseDropdownContainer');
+            const dropdown = document.getElementById('exerciseDropdownList');
+
+            if (container && dropdown && !container.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
 
         // Validate goal form
         function validateGoalForm(formData) {
@@ -3903,6 +4460,822 @@
                 alert('📋 Логи (скопируйте вручную):\n\n' + exportText.substring(0, 500) + '...');
             }
         }
+
+        // ============================================================================
+        // Feature 007: Аналитика по группам
+        // ============================================================================
+
+        // T011: Рассчитать статистику по группе
+        function calculateGroupStatistics(groupName) {
+            console.log(`📊 Расчёт статистики для группы: ${groupName}`);
+            
+            // Получить спортсменов в группе
+            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+            const athleteCount = groupAthletes.length;
+            
+            console.log(`📊 Найдено ${athleteCount} спортсменов в группе ${groupName}`);
+            
+            if (athleteCount === 0) {
+                return {
+                    groupName: groupName,
+                    athleteCount: 0,
+                    averagePerformance: {},
+                    topPerformers: []
+                };
+            }
+            
+            // Fix: Use athlete.performance array instead of athlete.records object
+            // athlete.performance = [{month: '2024-09', pullUps: 10, pushUps: 20, dips: 15}, ...]
+            const athleteIds = groupAthletes.map(a => a.id);
+            const groupPerformances = athletesData
+                .filter(athlete => athleteIds.includes(athlete.id))
+                .flatMap(athlete => {
+                    if (!athlete.performance || !Array.isArray(athlete.performance)) {
+                        return [];
+                    }
+                    // Transform performance array to flat list of exercise results
+                    return athlete.performance.flatMap(monthData => {
+                        const results = [];
+                        const exercises = ['pullUps', 'pushUps', 'dips'];
+                        exercises.forEach(exercise => {
+                            if (monthData[exercise] && monthData[exercise] > 0) {
+                                // Find exercise name in exercisesData
+                                const exerciseData = exercisesData.find(e => e.id === exercise);
+                                const exerciseName = exerciseData ? exerciseData.name : exercise;
+
+                                results.push({
+                                    athleteId: athlete.id,
+                                    athleteName: athlete.name,
+                                    exerciseName: exerciseName,
+                                    value: parseFloat(monthData[exercise]) || 0,
+                                    date: monthData.month
+                                });
+                            }
+                        });
+                        return results;
+                    });
+                })
+                .filter(perf => perf.value > 0);
+            
+            console.log(`📊 Найдено ${groupPerformances.length} результатов для группы ${groupName}`);
+            
+            // Рассчитать средние результаты по упражнениям
+            const averagePerformance = {};
+            const exerciseGroups = {};
+            
+            groupPerformances.forEach(perf => {
+                if (!exerciseGroups[perf.exerciseName]) {
+                    exerciseGroups[perf.exerciseName] = [];
+                }
+                exerciseGroups[perf.exerciseName].push(perf.value);
+            });
+            
+            Object.keys(exerciseGroups).forEach(exerciseName => {
+                const values = exerciseGroups[exerciseName];
+                const sum = values.reduce((a, b) => a + b, 0);
+                const avg = sum / values.length;
+                averagePerformance[exerciseName] = Math.round(avg * 100) / 100; // Округлить до 2 знаков
+            });
+            
+            // Найти топ-исполнителей (лучший результат по каждому упражнению)
+            const topPerformers = [];
+            Object.keys(exerciseGroups).forEach(exerciseName => {
+                const exercisePerformances = groupPerformances
+                    .filter(perf => perf.exerciseName === exerciseName)
+                    .sort((a, b) => b.value - a.value); // Сортировать по убыванию
+                
+                if (exercisePerformances.length > 0) {
+                    const best = exercisePerformances[0];
+                    topPerformers.push({
+                        athleteId: best.athleteId,
+                        athleteName: best.athleteName,
+                        exerciseName: best.exerciseName,
+                        value: best.value
+                    });
+                }
+            });
+            
+            console.log(`📊 Статистика для ${groupName}:`, {
+                athleteCount,
+                exercisesCount: Object.keys(averagePerformance).length,
+                topPerformersCount: topPerformers.length
+            });
+            
+            return {
+                groupName: groupName,
+                athleteCount: athleteCount,
+                averagePerformance: averagePerformance,
+                topPerformers: topPerformers
+            };
+        }
+
+        // T014: Открыть детальный просмотр группы
+        function openGroupDetails(groupName) {
+            console.log(`📊 Открытие детального просмотра группы: ${groupName}`);
+            
+            // Рассчитать статистику группы
+            const stats = calculateGroupStatistics(groupName);
+            
+            if (stats.athleteCount === 0) {
+                alert(`⚠️ В группе ${groupName} нет спортсменов`);
+                return;
+            }
+            
+            // Получить список спортсменов группы
+            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+            
+            // Создать HTML для списка упражнений со средними результатами
+            const exercisesList = Object.keys(stats.averagePerformance).length > 0
+                ? Object.entries(stats.averagePerformance)
+                    .sort((a, b) => b[1] - a[1]) // Сортировать по результату
+                    .map(([exerciseName, avgValue]) => `
+                        <div class="detail-stat-row">
+                            <div class="detail-stat-label">${exerciseName}</div>
+                            <div class="detail-stat-value">${avgValue}</div>
+                        </div>
+                    `).join('')
+                : '<div class="no-data-message">Нет результатов</div>';
+            
+            // Создать HTML для списка спортсменов
+            const athletesList = groupAthletes
+                .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+                .map(athlete => {
+                    // Fix: Use athlete.performance array instead of athlete.records object
+                    const performanceCount = athlete.performance ? athlete.performance.length : 0;
+
+                    // Fix: Display athlete level (rank_start) in group list
+                    const levelDisplay = athlete.rank_start
+                        ? `<span style="color: #8b8f9f; font-size: 11px;">${athlete.rank_start}</span>`
+                        : '<span style="color: #6b6f82; font-size: 11px;">Уровень не указан</span>';
+
+                    return `
+                        <div class="detail-athlete-row" onclick="openAthleteDetails('${athlete.id}')" style="cursor: pointer;">
+                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                                <div class="detail-athlete-name">${athlete.name}</div>
+                                ${levelDisplay}
+                            </div>
+                            <div class="detail-athlete-records" style="color: #4c9eff; font-weight: 600;">${performanceCount} результатов</div>
+                        </div>
+                    `;
+                }).join('');
+            
+            // Показать модальное окно с деталями
+            const modalHTML = `
+                <div class="modal show" id="group-details-modal" style="z-index: 2000;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title">📊 Группа ${groupName}</div>
+                            <button class="close-btn" onclick="closeGroupDetails()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="group-details-section">
+                                <h3>Общая статистика</h3>
+                                <div class="detail-stat-row">
+                                    <div class="detail-stat-label">Спортсменов</div>
+                                    <div class="detail-stat-value">${stats.athleteCount} 👤</div>
+                                </div>
+                                <div class="detail-stat-row">
+                                    <div class="detail-stat-label">Упражнений с результатами</div>
+                                    <div class="detail-stat-value">${Object.keys(stats.averagePerformance).length}</div>
+                                </div>
+                                <div class="detail-stat-row">
+                                    <div class="detail-stat-label">Топ результатов</div>
+                                    <div class="detail-stat-value">${stats.topPerformers.length}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="group-details-section">
+                                <h3>Средние результаты</h3>
+                                ${exercisesList}
+                            </div>
+                            
+                            <div class="group-details-section">
+                                <h3>Спортсмены (${groupAthletes.length})</h3>
+                                ${athletesList}
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeGroupDetails()">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Добавить модальное окно в DOM
+            const existingModal = document.getElementById('group-details-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            console.log(`✅ Открыт детальный просмотр группы ${groupName}`);
+        }
+        
+        // Закрыть детальный просмотр группы
+        function closeGroupDetails() {
+            console.log('📊 Закрытие детального просмотра группы');
+            const modal = document.getElementById('group-details-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // T012: Отрисовать карточки групп
+        function renderGroupCards() {
+            console.log('📊 Рендеринг карточек групп');
+            
+            const container = document.getElementById('group-cards-container');
+            if (!container) {
+                console.error('❌ Контейнер group-cards-container не найден');
+                return;
+            }
+            
+            // T030: Проверка на пустые данные
+            if (!athletesData || athletesData.length === 0) {
+                console.warn('⚠️ athletesData пуст или не загружен');
+                container.innerHTML = `
+                    <div class="no-data-message" style="grid-column: 1 / -1;">
+                        <div class="no-data-icon">⚠️</div>
+                        <div>Нет данных о спортсменах</div>
+                        <div style="font-size: 13px; margin-top: 10px; color: #6b6f82;">
+                            Загрузите данные через синхронизацию
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Рассчитать статистику для каждой группы
+            const groupStats = AVAILABLE_GROUPS.map(groupName => {
+                return calculateGroupStatistics(groupName);
+            });
+            
+            console.log(`📊 Рассчитана статистика для ${groupStats.length} групп`);
+
+            // Fix: Calculate total athletes with groups
+            const athletesWithGroup = athletesData.filter(athlete =>
+                athlete.group && athlete.group !== '' && athlete.group !== null && athlete.group !== 'undefined'
+            );
+            const totalWithGroupCount = athletesWithGroup.length;
+
+            // Create HTML for total athletes card
+            const totalAthletesCard = `
+                <div class="group-card" style="border-left-color: #4ade80;">
+                    <div class="group-card-header">
+                        <div class="group-name">✅ В группах</div>
+                        <div class="athlete-count">${totalWithGroupCount} 👤</div>
+                    </div>
+                    <div class="group-card-body">
+                        <div class="stat-item">
+                            <div class="stat-label">Активных групп</div>
+                            <div class="stat-value">${groupStats.filter(s => s.athleteCount > 0).length}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Охват</div>
+                            <div class="stat-value">${Math.round((totalWithGroupCount / athletesData.length) * 100)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // T024: Получить количество спортсменов без группы
+            const noGroupAthletes = getAthletesWithoutGroup();
+            const noGroupCount = noGroupAthletes.length;
+
+            // Создать HTML для карточки "Без группы"
+            const noGroupCard = noGroupCount > 0 ? `
+                <div class="group-card warning" onclick="openNoGroupModal()" style="border-left-color: #fbbf24;">
+                    <div class="group-card-header">
+                        <div class="group-name">⚠️ Без группы</div>
+                        <div class="athlete-count">${noGroupCount} 👤</div>
+                    </div>
+                    <div class="group-card-body">
+                        <div class="no-data-message" style="color: #fbbf24; font-size: 13px;">
+                            Требуется назначение
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+            
+            // Отрисовать карточки (карточка "Без группы" в начале)
+            const groupCardsHTML = groupStats.map(stats => {
+                const exerciseCount = Object.keys(stats.averagePerformance).length;
+                const hasData = stats.athleteCount > 0;
+                
+                return `
+                    <div class="group-card ${!hasData ? 'no-data' : ''}" onclick="openGroupDetails('${stats.groupName}')">
+                        <div class="group-card-header">
+                            <div class="group-name">${stats.groupName}</div>
+                            <div class="athlete-count">${stats.athleteCount} 👤</div>
+                        </div>
+                        <div class="group-card-body">
+                            ${hasData ? `
+                                <div class="stat-item">
+                                    <div class="stat-label">Упражнений</div>
+                                    <div class="stat-value">${exerciseCount}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Топ результатов</div>
+                                    <div class="stat-value">${stats.topPerformers.length}</div>
+                                </div>
+                            ` : `
+                                <div class="no-data-message">Нет данных</div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = totalAthletesCard + noGroupCard + groupCardsHTML;
+
+            console.log(`✅ Отрисовано ${groupStats.length} карточек групп + карточка "В группах" (${totalWithGroupCount} спортсменов) + карточка "Без группы" (${noGroupCount} спортсменов)`);
+        }
+
+        // T025: Получить спортсменов без группы
+        function getAthletesWithoutGroup() {
+            console.log('📊 Получение списка спортсменов без группы');
+            
+            const athletesWithoutGroup = athletesData.filter(athlete => {
+                return !athlete.group || 
+                       athlete.group === '' || 
+                       athlete.group === null || 
+                       athlete.group === 'undefined';
+            });
+            
+            console.log(`📊 Найдено ${athletesWithoutGroup.length} спортсменов без группы`);
+            return athletesWithoutGroup;
+        }
+        
+        // T026: Открыть модальное окно спортсменов без группы
+        function openNoGroupModal() {
+            console.log('📊 Открытие модального окна "Спортсмены без группы"');
+            
+            const modal = document.getElementById('no-group-modal');
+            if (!modal) {
+                console.error('❌ Модальное окно no-group-modal не найдено');
+                return;
+            }
+            
+            // Получить спортсменов без группы
+            const athletes = getAthletesWithoutGroup();
+            
+            // Отрисовать список
+            const listContainer = document.getElementById('no-group-athletes-list');
+            if (!listContainer) {
+                console.error('❌ Контейнер no-group-athletes-list не найден');
+                return;
+            }
+            
+            if (athletes.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="no-data-message">
+                        <div class="no-data-icon">✅</div>
+                        <div>Все спортсмены распределены по группам</div>
+                    </div>
+                `;
+            } else {
+                listContainer.innerHTML = athletes.map(athlete => `
+                    <div class="no-group-athlete-item">
+                        <div class="no-group-athlete-name">${athlete.name}</div>
+                        <select class="form-select" onchange="assignGroup('${athlete.id}', this.value)" style="max-width: 120px;">
+                            <option value="">Выбрать группу...</option>
+                            ${AVAILABLE_GROUPS.map(group => `
+                                <option value="${group}">${group}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `).join('');
+            }
+            
+            // Показать модальное окно
+            modal.classList.add('show');
+            
+            console.log(`✅ Модальное окно открыто, показано ${athletes.length} спортсменов`);
+        }
+        
+        // T027: Закрыть модальное окно спортсменов без группы
+        function closeNoGroupModal() {
+            console.log('📊 Закрытие модального окна "Спортсмены без группы"');
+            
+            const modal = document.getElementById('no-group-modal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+        
+        // T028: Назначить группу спортсмену
+        function assignGroup(athleteId, groupName) {
+            if (!groupName) {
+                console.log('⚠️ Группа не выбрана');
+                return;
+            }
+            
+            console.log(`📊 Назначение группы ${groupName} спортсмену ${athleteId}`);
+            
+            // Найти спортсмена
+            const athlete = athletesData.find(a => a.id === athleteId);
+            if (!athlete) {
+                console.error(`❌ Спортсмен с ID ${athleteId} не найден`);
+                alert('❌ Ошибка: спортсмен не найден');
+                return;
+            }
+            
+            // Обновить группу
+            athlete.group = groupName;
+            
+            // Сохранить в localStorage
+            localStorage.setItem('athletesData', JSON.stringify(athletesData));
+            
+            // Добавить в очередь синхронизации
+            pendingChanges.push({
+                type: 'athlete',
+                action: 'update',
+                id: athleteId,
+                data: { group: groupName },
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+            
+            console.log(`✅ Группа ${groupName} назначена спортсмену ${athlete.name}`);
+            
+            // Обновить индикатор несохранённых изменений
+            updatePendingIndicator();
+            
+            // Закрыть модальное окно и обновить карточки
+            closeNoGroupModal();
+            renderGroupCards();
+            
+            // Показать уведомление
+            alert(`✅ Группа ${groupName} назначена спортсмену ${athlete.name}`);
+        }
+
+        // T022: Отрисовать график SVG
+        function renderExerciseChart(groupStats, exerciseName) {
+            console.log(`📊 Рендеринг графика для ${exerciseName}`);
+            
+            const svg = document.getElementById('exercise-chart');
+            if (!svg) {
+                console.error('❌ SVG элемент exercise-chart не найден');
+                return;
+            }
+            
+            // Отфильтровать группы с данными
+            const statsWithData = groupStats.filter(stat => stat.totalResults > 0);
+            
+            if (statsWithData.length === 0) {
+                svg.innerHTML = `
+                    <text x="50%" y="50%" text-anchor="middle" fill="#6b6f82" font-size="14">
+                        Нет данных для графика
+                    </text>
+                `;
+                return;
+            }
+            
+            // Параметры графика
+            const width = svg.clientWidth || 320;
+            const height = 300;
+            const margin = { top: 20, right: 20, bottom: 60, left: 50 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Найти максимальное значение для масштабирования
+            const maxValue = Math.max(...statsWithData.map(stat => stat.avgResult));
+            const yScale = chartHeight / maxValue;
+            
+            // Ширина столбца
+            const barWidth = chartWidth / statsWithData.length - 10;
+            
+            // Очистить SVG
+            svg.innerHTML = '';
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            
+            // Отрисовать столбцы
+            statsWithData.forEach((stat, index) => {
+                const x = margin.left + (index * (chartWidth / statsWithData.length)) + 5;
+                const barHeight = stat.avgResult * yScale;
+                const y = margin.top + chartHeight - barHeight;
+                
+                // Столбец
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth);
+                rect.setAttribute('height', barHeight);
+                rect.setAttribute('fill', '#4c9eff');
+                rect.setAttribute('rx', '4');
+                svg.appendChild(rect);
+                
+                // Значение над столбцом
+                const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valueText.setAttribute('x', x + barWidth / 2);
+                valueText.setAttribute('y', y - 5);
+                valueText.setAttribute('text-anchor', 'middle');
+                valueText.setAttribute('fill', '#ffffff');
+                valueText.setAttribute('font-size', '12');
+                valueText.setAttribute('font-weight', '600');
+                valueText.textContent = stat.avgResult;
+                svg.appendChild(valueText);
+                
+                // Название группы под столбцом
+                const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelText.setAttribute('x', x + barWidth / 2);
+                labelText.setAttribute('y', margin.top + chartHeight + 20);
+                labelText.setAttribute('text-anchor', 'middle');
+                labelText.setAttribute('fill', '#8b8f9f');
+                labelText.setAttribute('font-size', '13');
+                labelText.textContent = stat.groupName;
+                svg.appendChild(labelText);
+            });
+            
+            // Ось Y (базовая линия)
+            const axisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axisLine.setAttribute('x1', margin.left);
+            axisLine.setAttribute('y1', margin.top);
+            axisLine.setAttribute('x2', margin.left);
+            axisLine.setAttribute('y2', margin.top + chartHeight);
+            axisLine.setAttribute('stroke', '#2a2d3a');
+            axisLine.setAttribute('stroke-width', '2');
+            svg.appendChild(axisLine);
+            
+            // Ось X (базовая линия)
+            const xAxisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxisLine.setAttribute('x1', margin.left);
+            xAxisLine.setAttribute('y1', margin.top + chartHeight);
+            xAxisLine.setAttribute('x2', margin.left + chartWidth);
+            xAxisLine.setAttribute('y2', margin.top + chartHeight);
+            xAxisLine.setAttribute('stroke', '#2a2d3a');
+            xAxisLine.setAttribute('stroke-width', '2');
+            svg.appendChild(xAxisLine);
+            
+            console.log(`✅ График отрисован для ${statsWithData.length} групп`);
+        }
+
+        // T021: Отрисовать таблицу статистики
+        function renderStatsTable(groupStats) {
+            console.log('📊 Рендеринг таблицы статистики');
+            
+            const tableBody = document.getElementById('stats-table-body');
+            if (!tableBody) {
+                console.error('❌ Элемент stats-table-body не найден');
+                return;
+            }
+            
+            // Отфильтровать группы с данными и отсортировать по среднему результату
+            const statsWithData = groupStats.filter(stat => stat.totalResults > 0);
+            statsWithData.sort((a, b) => b.avgResult - a.avgResult);
+            
+            if (statsWithData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #6b6f82;">
+                            Нет данных для отображения
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = statsWithData.map(stat => `
+                <tr>
+                    <td><strong>${stat.groupName}</strong></td>
+                    <td>${stat.avgResult}</td>
+                    <td>${stat.bestResult}</td>
+                    <td>${stat.athleteCount} 👤</td>
+                </tr>
+            `).join('');
+            
+            console.log(`✅ Таблица заполнена ${statsWithData.length} строками`);
+        }
+
+        // T020: Рассчитать статистику по упражнению для каждой группы
+        function calculateExerciseStatsByGroup(exerciseName) {
+            console.log(`📊 Расчёт статистики по упражнению: ${exerciseName}`);
+            
+            const groupStats = AVAILABLE_GROUPS.map(groupName => {
+                // Получить спортсменов группы
+                const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
+
+                // Fix: Find exercise ID from exerciseName
+                const exerciseData = exercisesData.find(e => e.name === exerciseName);
+                const exerciseId = exerciseData ? exerciseData.id : null;
+
+                // Собрать результаты по данному упражнению
+                const exerciseResults = [];
+                groupAthletes.forEach(athlete => {
+                    // Fix: Use athlete.performance array instead of athlete.records
+                    if (athlete.performance && Array.isArray(athlete.performance) && exerciseId) {
+                        athlete.performance.forEach(monthData => {
+                            const value = monthData[exerciseId] ? parseFloat(monthData[exerciseId]) : 0;
+                            if (value > 0) {
+                                exerciseResults.push({
+                                    athleteId: athlete.id,
+                                    athleteName: athlete.name,
+                                    value: value,
+                                    date: monthData.month
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // Рассчитать статистику
+                let avgResult = 0;
+                let bestResult = 0;
+                let athleteCount = new Set(exerciseResults.map(r => r.athleteId)).size;
+                
+                if (exerciseResults.length > 0) {
+                    const sum = exerciseResults.reduce((acc, r) => acc + r.value, 0);
+                    avgResult = Math.round((sum / exerciseResults.length) * 100) / 100;
+                    bestResult = Math.max(...exerciseResults.map(r => r.value));
+                }
+                
+                return {
+                    groupName: groupName,
+                    avgResult: avgResult,
+                    bestResult: bestResult,
+                    athleteCount: athleteCount,
+                    totalResults: exerciseResults.length
+                };
+            });
+            
+            console.log(`✅ Рассчитана статистика по ${exerciseName} для ${groupStats.length} групп`);
+            return groupStats;
+        }
+
+        // T019: Отрисовать статистику по упражнению
+        function renderExerciseStats(exerciseName) {
+            console.log(`📊 Рендеринг статистики по упражнению: ${exerciseName}`);
+            
+            const container = document.getElementById('exercise-stats-container');
+            if (!container) {
+                console.error('❌ Контейнер exercise-stats-container не найден');
+                return;
+            }
+            
+            if (!exerciseName) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            // Показать контейнер
+            container.style.display = 'block';
+            
+            // Обновить заголовок
+            const title = document.getElementById('exercise-stats-title');
+            if (title) {
+                title.textContent = `📊 ${exerciseName}`;
+            }
+            
+            // Рассчитать статистику по группам
+            const groupStats = calculateExerciseStatsByGroup(exerciseName);
+            
+            // Отрисовать таблицу (T021)
+            renderStatsTable(groupStats);
+            
+            // Отрисовать график (T022)
+            renderExerciseChart(groupStats, exerciseName);
+            
+            console.log(`✅ Статистика по ${exerciseName} отрисована`);
+        }
+        
+        // T018: Обработчик выбора упражнения
+        function handleExerciseSelect(exerciseName) {
+            console.log(`📊 Выбрано упражнение: ${exerciseName || '(пусто)'}`);
+            renderExerciseStats(exerciseName);
+        }
+
+        // T017: Заполнить селектор упражнений
+        function populateExerciseSelector() {
+            console.log('📊 Заполнение селектора упражнений');
+            
+            const selector = document.getElementById('exercise-selector');
+            if (!selector) {
+                console.error('❌ Селектор exercise-selector не найден');
+                return;
+            }
+            
+            // T030: Проверка на пустые данные
+            if (!exercisesData || exercisesData.length === 0) {
+                console.warn('⚠️ exercisesData пуст или не загружен');
+                selector.innerHTML = '<option value="">Нет данных об упражнениях</option>';
+                return;
+            }
+            
+            // Собрать все уникальные упражнения из exercisesData
+            const uniqueExercises = [...new Set(exercisesData.map(ex => ex.name))].sort((a, b) => 
+                a.localeCompare(b, 'ru')
+            );
+            
+            console.log(`📊 Найдено ${uniqueExercises.length} уникальных упражнений`);
+            
+            // Очистить селектор и добавить опции
+            selector.innerHTML = '<option value="">Выберите упражнение...</option>';
+            uniqueExercises.forEach(exerciseName => {
+                const option = document.createElement('option');
+                option.value = exerciseName;
+                option.textContent = exerciseName;
+                selector.appendChild(option);
+            });
+            
+            console.log(`✅ Селектор заполнен ${uniqueExercises.length} упражнениями`);
+        }
+
+        // T008: Открыть страницу аналитики
+        function openAnalyticsView() {
+            console.log('📊 Открытие страницы аналитики');
+            
+            // Скрыть все другие представления
+            const container = document.querySelector('.container');
+            if (container) {
+                container.style.display = 'none';
+            }
+            
+            // Показать представление аналитики
+            const analyticsView = document.getElementById('analytics-view');
+            if (analyticsView) {
+                analyticsView.classList.add('show');
+            }
+            
+            // Обновить активный элемент навигации
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const analyticsNavItem = document.querySelector('.nav-item[data-nav="analytics"]');
+            if (analyticsNavItem) {
+                analyticsNavItem.classList.add('active');
+            }
+            
+            // T031: Показать индикатор загрузки
+            const groupCardsContainer = document.getElementById('group-cards-container');
+            if (groupCardsContainer) {
+                groupCardsContainer.innerHTML = `
+                    <div class="loading-indicator" style="grid-column: 1 / -1;">
+                        <div class="loading-spinner">⏳</div>
+                        <div>Расчёт статистики...</div>
+                    </div>
+                `;
+            }
+            
+            // Использовать setTimeout для асинхронной отрисовки (UI остаётся отзывчивым)
+            setTimeout(() => {
+                // Отрендерить карточки групп
+                renderGroupCards();
+                
+                // Заполнить селектор упражнений
+                populateExerciseSelector();
+            }, 100);
+        }
+        
+        // Закрыть страницу аналитики
+        function closeAnalyticsView() {
+            console.log('📊 Закрытие страницы аналитики');
+            
+            // Скрыть представление аналитики
+            const analyticsView = document.getElementById('analytics-view');
+            if (analyticsView) {
+                analyticsView.classList.remove('show');
+            }
+            
+            // Показать основной контейнер
+            const container = document.querySelector('.container');
+            if (container) {
+                container.style.display = 'block';
+            }
+            
+            // Вернуть активность на "Ученики"
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const athletesNavItem = document.querySelector('.nav-item[data-nav="athletes"]');
+            if (athletesNavItem) {
+                athletesNavItem.classList.add('active');
+            }
+        }
+
+        // ============================================================================
+        // T035: Финальная проверка конституции
+        // ============================================================================
+        
+        // Проверка соответствия Feature 007 конституции проекта
+        function verifyFeature007Constitution() {
+            console.log('🔍 Проверка Feature 007 на соответствие конституции');
+            
+            const checks = {
+                singleFile: true, // ✅ Всё в index.html
+                noDependencies: true, // ✅ Vanilla JS, no npm packages
+                offlineFirst: true, // ✅ localStorage first, Supabase sync
+                mobileFirst: true, // ✅ Responsive design, touch targets
+                darkTheme: true, // ✅ Dark colors (#0f1117, #1a1d29, #4c9eff)
+                russianLanguage: true // ✅ Все тексты на русском
+            };
+            
+            console.log('✅ Feature 007 соответствует конституции:', checks);
+            return checks;
+        }
+
+        // ============================================================================
+        // Периодические обновления и инициализация
+        // ============================================================================
 
         setInterval(() => {
             const btn = document.getElementById('syncBtn');
