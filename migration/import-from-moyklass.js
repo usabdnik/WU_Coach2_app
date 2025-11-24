@@ -399,7 +399,7 @@ async function syncAthletesFromMoyklass() {
 
         const athleteData = {
           name: fullName,
-          group: 'Начинающие', // Default group (can be enhanced later)
+          // ❌ НЕ обновляем группу из CRM - группы устанавливаются вручную через приложение
           status: status
         };
 

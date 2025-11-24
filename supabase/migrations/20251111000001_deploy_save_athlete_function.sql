@@ -32,9 +32,10 @@ BEGIN
 
   IF athlete_id IS NOT NULL THEN
     -- Update existing athlete
+    -- ❌ НЕ обновляем group_name если не передана (NULL) - группы устанавливаются вручную
     UPDATE athletes
     SET
-      group_name = athlete_group,
+      group_name = COALESCE(athlete_group, group_name),
       status = athlete_status,
       updated_at = NOW()
     WHERE id = athlete_id;
