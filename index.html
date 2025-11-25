@@ -2193,9 +2193,8 @@
 
             const studentId = document.getElementById('createGoalStudentId').value;
             const studentName = document.getElementById('createGoalStudentName').value;
-            const exerciseSelect = document.getElementById('createGoalExercise');
-            const exerciseId = exerciseSelect.value;
-            const exerciseName = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+            const exerciseId = document.getElementById('createGoalExercise').value; // Hidden input with ID
+            const exerciseName = document.getElementById('exerciseSearchInput').value; // Text input with name
             const startDate = document.getElementById('createGoalStartDate').value;
             const endDate = document.getElementById('createGoalEndDate').value;
             const description = document.getElementById('createGoalDescription').value;
@@ -2877,6 +2876,16 @@
             const allTime = allTimeRecords[athlete.id] || { pullUps: 0, pushUps: 0, dips: 0 };
 
             const detailsHTML = `
+                <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #4ade80;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="section-title" style="margin: 0;">Группа</div>
+                        <button onclick="editRecords('${athlete.id}'); event.stopPropagation();" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #4ade80;">✏️</button>
+                    </div>
+                    <div style="color: #fff; font-size: 14px; line-height: 1.6;">
+                        ${athlete.group || '<span style="color: #6b6f82;">(Не указана)</span>'}
+                    </div>
+                </div>
+
                 <div style="margin: 0 0 15px 0; padding: 12px; background: #2a2d3a; border-radius: 8px; border-left: 3px solid #4c9eff;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <div class="section-title" style="margin: 0;">Расписание</div>
