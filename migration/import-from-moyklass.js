@@ -397,10 +397,18 @@ async function syncAthletesFromMoyklass() {
           ? 'active'
           : 'inactive';
 
+        // Получаем текущее значение group_name, чтобы не затереть его
+        const { data: existingAthlete } = await supabase
+          .from('athletes')
+          .select('group_name')
+          .eq('name', fullName)
+          .maybeSingle();
+
         const athleteData = {
           name: fullName,
-          // ❌ НЕ обновляем группу из CRM - группы устанавливаются вручную через приложение
-          status: status
+          status: status,
+          // Сохраняем существующее значение group_name (если есть)
+          ...(existingAthlete?.group_name && { group_name: existingAthlete.group_name })
         };
 
         // Step 1: Save/update athlete
