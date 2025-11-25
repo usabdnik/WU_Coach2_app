@@ -1854,11 +1854,7 @@
                     goal.startDate = goal.setDate;
                 }
 
-                if (goal.endDate && !goal.completionDate) {
-                    goal.completionDate = goal.endDate;
-                } else if (goal.completionDate && !goal.endDate) {
-                    goal.endDate = goal.completionDate;
-                }
+                // completionDate field removed - using 'completed' boolean from Supabase instead
             });
 
             if (migrated > 0) {
@@ -1989,7 +1985,7 @@
             // Заполняем форму текущими значениями
             document.getElementById('editGoalId').value = goal.id;
             document.getElementById('editGoalStartDate').value = goal.startDate || goal.setDate || '';
-            document.getElementById('editGoalEndDate').value = goal.endDate || goal.completionDate || '';
+            document.getElementById('editGoalEndDate').value = goal.endDate || '';
 
             // Скрываем ошибки
             const errorsDiv = document.getElementById('goalEditErrors');
@@ -2226,7 +2222,7 @@
                 startDate: startDate,
                 setDate: startDate, // Dual field support
                 endDate: endDate,
-                completionDate: '', // Empty until completed
+                completed: false, // Track completion status in Supabase
                 description: description,
                 notes: description,
                 status: 'active',
@@ -2293,7 +2289,6 @@
             goal.startDate = startDate;
             goal.setDate = startDate; // Поддержка обоих полей
             goal.endDate = endDate;
-            goal.completionDate = endDate; // Поддержка обоих полей
             goal.updatedAt = new Date().toISOString();
 
             // Сохраняем в localStorage
@@ -2751,7 +2746,7 @@
                 const allTimeMax = Math.max(allTime.pullUps, allTime.pushUps, allTime.dips);
 
                 const athleteGoals = goalsData.filter(g => g.studentId == athlete.id);
-                const activeGoals = athleteGoals.filter(g => !g.completionDate);
+                const activeGoals = athleteGoals.filter(g => !g.completed); // Use Supabase 'completed' field
 
                 const hasPending = pendingChanges.some(c =>
                     (c.type === 'athlete' && c.athleteId == athlete.id) ||
