@@ -2742,10 +2742,6 @@
             }
 
             // Apply search and group filters first
-            console.log('🔍 DEBUG renderAthletes(): athletesData.length =', athletesData.length);
-            console.log('🔍 DEBUG renderAthletes(): currentFilter =', currentFilter);
-            console.log('🔍 DEBUG renderAthletes(): searchTerm =', searchTerm);
-            
             let filtered = athletesData.filter(a => {
                 const matchesSearch = a.lastName.toLowerCase().includes(searchTerm) ||
                                     a.firstName.toLowerCase().includes(searchTerm);
@@ -2762,8 +2758,6 @@
                 
                 return matchesSearch && matchesFilter;
             });
-            
-            console.log('🔍 DEBUG renderAthletes(): filtered.length после фильтра =', filtered.length);
 
             // T045: Apply subscription filter (async)
             filtered = await filterBySubscriptionHistory(filtered);
@@ -3182,17 +3176,6 @@
 
         // Transform Supabase athlete to PWA format
         function transformSupabaseAthlete(athlete, performances = []) {
-            // 🔍 DEBUG: Log incoming athlete parameter to find why group_name becomes null
-            if (athlete.name && (athlete.name.includes('Байгозин') || athlete.name.includes('Актямов'))) {
-                console.log('🔍 DEBUG ВНУТРИ transformSupabaseAthlete() для', athlete.name, ':', {
-                    group_name: athlete.group_name,
-                    'typeof group_name': typeof athlete.group_name,
-                    'group_name === null': athlete.group_name === null,
-                    'group_name === undefined': athlete.group_name === undefined,
-                    'all_keys': Object.keys(athlete).join(', ')
-                });
-            }
-
             // Parse name (format: "Фамилия Имя" or just "Имя")
             const nameParts = athlete.name.trim().split(' ');
             const lastName = nameParts.length > 1 ? nameParts[0] : '';
@@ -3351,17 +3334,6 @@
                     .order('name', { ascending: true });
 
                 if (athletesError) throw athletesError;
-                
-                // 🔍 DEBUG: Log raw athlete data from Supabase
-                const baigozin = athletes.find(a => a.name && a.name.includes('Байгозин'));
-                if (baigozin) {
-                    console.log('🔍 DEBUG Сырые данные Байгозина из Supabase:', {
-                        name: baigozin.name,
-                        group_name: baigozin.group_name,
-                        schedule: baigozin.schedule,
-                        rank_start: baigozin.rank_start
-                    });
-                }
 
                 // Fetch exercises
                 const { data: exercises, error: exercisesError } = await supabaseClient
@@ -4524,9 +4496,9 @@
         // T011: Рассчитать статистику по группе
         function calculateGroupStatistics(groupName) {
             console.log(`📊 Расчёт статистики для группы: ${groupName}`);
-            
+
             // Получить спортсменов в группе
-            const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
+            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
             const athleteCount = groupAthletes.length;
             
             console.log(`📊 Найдено ${athleteCount} спортсменов в группе ${groupName}`);
@@ -4638,7 +4610,7 @@
             }
             
             // Получить список спортсменов группы
-            const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
+            const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
             
             // Создать HTML для списка упражнений со средними результатами
             const exercisesList = Object.keys(stats.averagePerformance).length > 0
@@ -4770,7 +4742,7 @@
 
             // Fix: Calculate total athletes with groups
             const athletesWithGroup = athletesData.filter(athlete =>
-                athlete.group_name && athlete.group_name !== '' && athlete.group_name !== null && athlete.group_name !== 'undefined'
+                athlete.group && athlete.group !== '' && athlete.group !== null && athlete.group !== 'undefined'
             );
             const totalWithGroupCount = athletesWithGroup.length;
 
@@ -4850,12 +4822,12 @@
         // T025: Получить спортсменов без группы
         function getAthletesWithoutGroup() {
             console.log('📊 Получение списка спортсменов без группы');
-            
+
             const athletesWithoutGroup = athletesData.filter(athlete => {
-                return !athlete.group_name || 
-                       athlete.group_name === '' || 
-                       athlete.group_name === null || 
-                       athlete.group_name === 'undefined';
+                return !athlete.group ||
+                       athlete.group === '' ||
+                       athlete.group === null ||
+                       athlete.group === 'undefined';
             });
             
             console.log(`📊 Найдено ${athletesWithoutGroup.length} спортсменов без группы`);
@@ -4937,7 +4909,7 @@
             }
             
             // Обновить группу
-            athlete.group_name = groupName;
+            athlete.group = groupName;
             
             // Сохранить в localStorage
             localStorage.setItem('athletesData', JSON.stringify(athletesData));
@@ -5107,22 +5079,30 @@
         // T020: Рассчитать статистику по упражнению для каждой группы
         function calculateExerciseStatsByGroup(exerciseName) {
             console.log(`📊 Расчёт статистики по упражнению: ${exerciseName}`);
-            
-            const groupStats = AVAILABLE_GROUPS.map(groupName => {
-                // Получить спортсменов группы
-                const groupAthletes = athletesData.filter(athlete => athlete.group_name === groupName);
 
-                // Fix: Find exercise ID from exerciseName
-                const exerciseData = exercisesData.find(e => e.name === exerciseName);
-                const exerciseId = exerciseData ? exerciseData.id : null;
+            // ✅ Map exercise names to performance field keys
+            const exerciseKeyMap = {
+                'Подтягивания': 'pullUps',
+                'Отжимания от пола': 'pushUps',
+                'Отжимания от брусьев': 'dips'
+            };
+            const exerciseKey = exerciseKeyMap[exerciseName] || null;
+
+            if (!exerciseKey) {
+                console.warn(`⚠️ Неизвестное упражнение: ${exerciseName}`);
+            }
+
+            const groupStats = AVAILABLE_GROUPS.map(groupName => {
+                // Получить спортсменов группы (используем .group вместо .group_name)
+                const groupAthletes = athletesData.filter(athlete => athlete.group === groupName);
 
                 // Собрать результаты по данному упражнению
                 const exerciseResults = [];
                 groupAthletes.forEach(athlete => {
-                    // Fix: Use athlete.performance array instead of athlete.records
-                    if (athlete.performance && Array.isArray(athlete.performance) && exerciseId) {
+                    // Use athlete.performance array with exerciseKey mapping
+                    if (athlete.performance && Array.isArray(athlete.performance) && exerciseKey) {
                         athlete.performance.forEach(monthData => {
-                            const value = monthData[exerciseId] ? parseFloat(monthData[exerciseId]) : 0;
+                            const value = monthData[exerciseKey] ? parseFloat(monthData[exerciseKey]) : 0;
                             if (value > 0) {
                                 exerciseResults.push({
                                     athleteId: athlete.id,
