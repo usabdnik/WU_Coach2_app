@@ -2810,7 +2810,7 @@
                             </div>
                         </div>
                         <div class="athlete-info">
-                            <div class="info-item">${athlete.group_name}</div>
+                            <div class="info-item">${athlete.group || '(Без группы)'}</div>
                             <div class="info-item">
                                 <span class="status-badge ${athlete.active === 'Да' ? '' : 'inactive'}">
                                     ${athlete.active === 'Да' ? 'Активен' : 'Неактивен'}
@@ -3182,6 +3182,17 @@
 
         // Transform Supabase athlete to PWA format
         function transformSupabaseAthlete(athlete, performances = []) {
+            // 🔍 DEBUG: Log incoming athlete parameter to find why group_name becomes null
+            if (athlete.name && (athlete.name.includes('Байгозин') || athlete.name.includes('Актямов'))) {
+                console.log('🔍 DEBUG ВНУТРИ transformSupabaseAthlete() для', athlete.name, ':', {
+                    group_name: athlete.group_name,
+                    'typeof group_name': typeof athlete.group_name,
+                    'group_name === null': athlete.group_name === null,
+                    'group_name === undefined': athlete.group_name === undefined,
+                    'all_keys': Object.keys(athlete).join(', ')
+                });
+            }
+
             // Parse name (format: "Фамилия Имя" or just "Имя")
             const nameParts = athlete.name.trim().split(' ');
             const lastName = nameParts.length > 1 ? nameParts[0] : '';
@@ -3340,6 +3351,17 @@
                     .order('name', { ascending: true });
 
                 if (athletesError) throw athletesError;
+                
+                // 🔍 DEBUG: Log raw athlete data from Supabase
+                const baigozin = athletes.find(a => a.name && a.name.includes('Байгозин'));
+                if (baigozin) {
+                    console.log('🔍 DEBUG Сырые данные Байгозина из Supabase:', {
+                        name: baigozin.name,
+                        group_name: baigozin.group_name,
+                        schedule: baigozin.schedule,
+                        rank_start: baigozin.rank_start
+                    });
+                }
 
                 // Fetch exercises
                 const { data: exercises, error: exercisesError } = await supabaseClient
@@ -3375,6 +3397,17 @@
 
                 // Transform athletes with performances
                 athletesData = athletes.map(athlete => transformSupabaseAthlete(athlete, performances));
+                
+                // 🔍 DEBUG: Log transformed Baigozin
+                const transformedBaigozin = athletesData.find(a => a.name && a.name.includes('Байгозин'));
+                if (transformedBaigozin) {
+                    console.log('🔍 DEBUG Байгозин после трансформации:', {
+                        name: transformedBaigozin.name,
+                        group: transformedBaigozin.group,
+                        schedule: transformedBaigozin.schedule,
+                        rank_start: transformedBaigozin.rank_start
+                    });
+                }
 
                 // Transform exercises (simple mapping)
                 exercisesData = exercises.map(ex => ({
@@ -3456,12 +3489,16 @@
                     if (change.type === 'athlete') {
                         // Update athlete record
                         console.log('📤 Обновление спортсмена в Supabase:', change.athleteName);
+                        console.log('🔍 DEBUG change.data:', change.data);
+                        console.log('🔍 DEBUG change.data.group:', change.data.group);
 
                         // Update athlete basic info (group, schedule, rank_start)
                         const updateData = {
                             group_name: change.data.group,
                             updated_at: new Date().toISOString()
                         };
+                        
+                        console.log('🔍 DEBUG updateData до добавления полей:', updateData);
 
                         // Add schedule if present in change data
                         if ('schedule' in change.data) {
@@ -3489,25 +3526,27 @@
 
                         if (athleteError) throw athleteError;
 
-                        // Get exercise IDs for mapping
-                        const exerciseMap = {
-                            'pullUps': exercisesData.find(e => e.name === 'Подтягивания')?.id,
-                            'pushUps': exercisesData.find(e => e.name === 'Отжимания от пола')?.id,
-                            'dips': exercisesData.find(e => e.name === 'Отжимания от брусьев')?.id
-                        };
+                        // Only process performances if they exist in change.data
+                        if (change.data.performance && Array.isArray(change.data.performance)) {
+                            // Get exercise IDs for mapping
+                            const exerciseMap = {
+                                'pullUps': exercisesData.find(e => e.name === 'Подтягивания')?.id,
+                                'pushUps': exercisesData.find(e => e.name === 'Отжимания от пола')?.id,
+                                'dips': exercisesData.find(e => e.name === 'Отжимания от брусьев')?.id
+                            };
 
-                        // Delete old performances for this athlete (clean slate approach)
-                        const { error: deleteError } = await supabaseClient
-                            .from('performances')
-                            .delete()
-                            .eq('athlete_id', change.athleteId);
+                            // Delete old performances for this athlete (clean slate approach)
+                            const { error: deleteError } = await supabaseClient
+                                .from('performances')
+                                .delete()
+                                .eq('athlete_id', change.athleteId);
 
-                        if (deleteError) throw deleteError;
+                            if (deleteError) throw deleteError;
 
-                        // Insert new performances
-                        const performancesToInsert = [];
+                            // Insert new performances
+                            const performancesToInsert = [];
 
-                        change.data.performance.forEach((monthData, index) => {
+                            change.data.performance.forEach((monthData, index) => {
                             const month = MONTHS[index];
 
                             // Calculate date for this month (current season)
@@ -3556,14 +3595,15 @@
                             }
                         });
 
-                        // Insert all performances in one batch
-                        if (performancesToInsert.length > 0) {
-                            const { error: insertError } = await supabaseClient
-                                .from('performances')
-                                .insert(performancesToInsert);
+                            // Insert all performances in one batch
+                            if (performancesToInsert.length > 0) {
+                                const { error: insertError } = await supabaseClient
+                                    .from('performances')
+                                    .insert(performancesToInsert);
 
-                            if (insertError) throw insertError;
-                            console.log(`✅ Сохранено ${performancesToInsert.length} показателей`);
+                                if (insertError) throw insertError;
+                                console.log(`✅ Сохранено ${performancesToInsert.length} показателей`);
+                            }
                         }
 
                         successfulChanges.push(change);
@@ -3647,6 +3687,14 @@
 
                 } catch (error) {
                     console.error('❌ Ошибка синхронизации изменения:', error);
+                    console.error('📋 Детали изменения:', {
+                        type: change.type,
+                        action: change.action,
+                        athleteId: change.athleteId,
+                        athleteName: change.athleteName,
+                        data: change.data,
+                        fullChange: change
+                    });
                     // Log specific error details for rank data
                     if (change.type === 'athlete' && ('rank_start' in change.data || 'rank_end' in change.data)) {
                         console.error('🏆 Ошибка синхронизации разрядов:', {
@@ -4039,8 +4087,11 @@
                 if (!athlete) return;
 
                 // Обновляем группу, расписание и разряды
-                athlete.group_name = document.getElementById('recordsGroup').value;
+                const groupValue = document.getElementById('recordsGroup').value;
+                console.log('🔍 DEBUG Форма: выбранная группа =', groupValue);
+                athlete.group = groupValue;
                 athlete.schedule = document.getElementById('recordsSchedule').value.trim();
+                console.log('🔍 DEBUG После присвоения: athlete.group =', athlete.group);
                 const rankStartValue = document.getElementById('recordsRankStart').value;
                 const rankEndValue = document.getElementById('recordsRankEnd').value;
 
@@ -4085,7 +4136,7 @@
                 // Добавляем в очередь на синхронизацию
                 const studentData = {
                     id: athlete.id,
-                    group: athlete.group_name,
+                    group: athlete.group,
                     schedule: athlete.schedule,
                     rank_start: athlete.rank_start,
                     rank_end: athlete.rank_end,
@@ -4096,12 +4147,17 @@
                     }))
                 };
 
+                console.log('🔍 DEBUG studentData перед добавлением в pendingChanges:', studentData);
+                console.log('🔍 DEBUG studentData.group =', studentData.group);
+
                 pendingChanges.push({
                     type: 'athlete',
                     athleteId: athlete.id,
                     athleteName: `${athlete.lastName} ${athlete.firstName}`,
                     data: studentData
                 });
+                
+                console.log('🔍 DEBUG pendingChanges после добавления:', pendingChanges);
 
                 saveToLocalStorage();
                 renderAthletes();
@@ -4890,7 +4946,8 @@
             pendingChanges.push({
                 type: 'athlete',
                 action: 'update',
-                id: athleteId,
+                athleteId: athleteId,
+                athleteName: athlete.name,
                 data: { group: groupName },
                 timestamp: new Date().toISOString()
             });
