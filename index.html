@@ -549,7 +549,10 @@
         }
 
         .goal-card.completed {
-            border-left-color: #4ade80;
+            border: 2px solid #4ade80;
+            border-left: 3px solid #4ade80;
+            background: rgba(74, 222, 128, 0.08);
+            box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.15);
         }
 
         .goal-title {
@@ -2090,6 +2093,15 @@
             }
         }
 
+        // Helper: Format exercise type as abbreviation
+        function formatExerciseType(type) {
+            if (!type) return '';
+            const lowerType = type.toLowerCase();
+            if (lowerType.includes('статик')) return '(С)';
+            if (lowerType.includes('динамик')) return '(Д)';
+            return `(${type.charAt(0).toUpperCase()})`;
+        }
+
         // Filter dropdown based on search input
         function filterExerciseDropdown() {
             const input = document.getElementById('exerciseSearchInput');
@@ -2115,14 +2127,28 @@
                 return;
             }
 
-            // Limit to first 50 results for performance
-            const displayExercises = exercises.slice(0, 50);
+            // Sort by score (ascending) before displaying
+            const sortedExercises = [...exercises].sort((a, b) => {
+                const scoreA = a.score || 0;
+                const scoreB = b.score || 0;
+                return scoreA - scoreB;
+            });
+            console.log(`🔢 Упражнения отсортированы по баллам (${sortedExercises.length} шт.)`);
 
-            dropdown.innerHTML = displayExercises.map(exercise => `
-                <div class="dropdown-item" onclick="selectExercise('${exercise.id}', '${exercise.name.replace(/'/g, "\\'")}')">
-                    ${exercise.name}
-                </div>
-            `).join('');
+            // Limit to first 50 results for performance
+            const displayExercises = sortedExercises.slice(0, 50);
+
+            dropdown.innerHTML = displayExercises.map(exercise => {
+                const typeLabel = formatExerciseType(exercise.type);
+                const score = exercise.score || 0;
+                const displayText = `${exercise.name} ${typeLabel} ${score}`;
+                
+                return `
+                    <div class="dropdown-item" onclick="selectExercise('${exercise.id}', '${exercise.name.replace(/'/g, "\\'")}')">
+                        ${displayText}
+                    </div>
+                `;
+            }).join('');
 
             if (exercises.length > 50) {
                 dropdown.innerHTML += `<div class="dropdown-empty" style="color: #fbbf24;">Показано 50 из ${exercises.length}. Уточните поиск.</div>`;
@@ -2997,6 +3023,8 @@
                 completionDate: goal.completionDate
             });
 
+            console.log(`${markAsComplete ? '✅' : '↩️'} Цель "${goal.exerciseName}" ${markAsComplete ? 'выполнена' : 'возвращена в работу'} (ID: ${goalId})`);
+
             saveToLocalStorage();
 
             // Обновляем отображение
@@ -3363,8 +3391,10 @@
                     name: ex.name,
                     type: ex.type,
                     category: ex.category,
-                    unit: ex.unit || 'count'
+                    unit: ex.unit || 'count',
+                    score: ex.score || 0
                 }));
+                console.log('🔢 Загружено упражнений с баллами:', exercisesData.filter(e => e.score > 0).length);
 
                 // Transform goals with JOIN data
                 goalsData = goals.map(goal => transformSupabaseGoal(
@@ -5179,23 +5209,38 @@
                 return;
             }
             
-            // Собрать все уникальные упражнения из exercisesData
-            const uniqueExercises = [...new Set(exercisesData.map(ex => ex.name))].sort((a, b) => 
-                a.localeCompare(b, 'ru')
-            );
+            // Собрать уникальные упражнения из exercisesData как объекты
+            const uniqueExercisesMap = new Map();
+            exercisesData.forEach(ex => {
+                if (!uniqueExercisesMap.has(ex.name)) {
+                    uniqueExercisesMap.set(ex.name, ex);
+                }
+            });
             
-            console.log(`📊 Найдено ${uniqueExercises.length} уникальных упражнений`);
+            // Сортировать по баллам (score) по возрастанию
+            const sortedExercises = Array.from(uniqueExercisesMap.values()).sort((a, b) => {
+                const scoreA = a.score || 0;
+                const scoreB = b.score || 0;
+                return scoreA - scoreB;
+            });
+            
+            console.log(`📊 Найдено ${sortedExercises.length} уникальных упражнений`);
+            console.log(`🔢 Упражнения отсортированы по баллам`);
             
             // Очистить селектор и добавить опции
             selector.innerHTML = '<option value="">Выберите упражнение...</option>';
-            uniqueExercises.forEach(exerciseName => {
+            sortedExercises.forEach(exercise => {
+                const typeLabel = formatExerciseType(exercise.type);
+                const score = exercise.score || 0;
+                const displayText = `${exercise.name} ${typeLabel} ${score}`;
+                
                 const option = document.createElement('option');
-                option.value = exerciseName;
-                option.textContent = exerciseName;
+                option.value = exercise.name;
+                option.textContent = displayText;
                 selector.appendChild(option);
             });
             
-            console.log(`✅ Селектор заполнен ${uniqueExercises.length} упражнениями`);
+            console.log(`✅ Селектор заполнен ${sortedExercises.length} упражнениями`);
         }
 
         // T008: Открыть страницу аналитики
