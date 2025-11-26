@@ -630,6 +630,8 @@ Before committing code changes:
 - Supabase PostgreSQL (cloud-hosted), localStorage (primary offline storage) (004-supabase-migration)
 - JavaScript ES6+ (in-browser runtime, no Node.js/build step) + Supabase JS SDK v2.x (via CDN), localStorage API (native browser API) (005-schedule-rank-subscription)
 - Supabase PostgreSQL 15+ (remote primary), localStorage (offline cache) (005-schedule-rank-subscription)
+- Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + NONE (zero runtime dependencies, Supabase JS SDK via CDN already present) (007-group-analytics)
+- localStorage API (primary, 5-10MB quota) + Supabase PostgreSQL (secondary sync) (007-group-analytics)
 
 ## Recent Changes
 
