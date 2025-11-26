@@ -3085,11 +3085,12 @@
 
             document.getElementById('recordsModalTitle').textContent = `${athlete.lastName} ${athlete.firstName}`;
             document.getElementById('recordsAthleteId').value = athlete.id;
-            document.getElementById('recordsGroup').value = athlete.group_name;
+            document.getElementById('recordsGroup').value = athlete.group || ''; // Правильное поле: athlete.group
             document.getElementById('recordsSchedule').value = athlete.schedule || '';
             document.getElementById('recordsRankStart').value = athlete.rank_start || '';
             document.getElementById('recordsRankEnd').value = athlete.rank_end || '';
             console.log('🏆 Загрузка разрядов:', athlete.rank_start, '→', athlete.rank_end);
+            console.log('🏢 Загрузка группы:', athlete.group);
 
             // Создаем мапу месяцев для быстрого доступа
             const performanceMap = {};
