@@ -397,64 +397,36 @@ async function syncAthletesFromMoyklass() {
           ? 'active'
           : 'inactive';
 
-        // ✅ ШАГ 1: Найти существующего атлета по имени + сохранить id и group_name
-        const { data: existingAthlete, error: findError } = await supabase
+        // Получаем текущее значение group_name, чтобы не затереть его
+        const { data: existingAthlete } = await supabase
           .from('athletes')
-          .select('id, group_name')
+          .select('group_name')
           .eq('name', fullName)
           .maybeSingle();
 
-        if (findError) throw findError;
+        const athleteData = {
+          name: fullName,
+          status: status,
+          // ✅ ИСПРАВЛЕНО: ключ 'group' вместо 'group_name' (SQL функция ожидает 'group')
+          ...(existingAthlete?.group_name && { group: existingAthlete.group_name })
+        };
 
-        let athleteId;
+        // Step 1: Save/update athlete
+        const { data: athleteResult, error: athleteError } = await supabase.rpc('save_athlete_with_validation', {
+          p_athlete_data: athleteData
+        });
 
-        if (existingAthlete) {
-          // ✅ ШАГ 2: UPDATE существующего атлета по id, СОХРАНЯЯ group_name
-          const updateData = {
-            name: fullName,
-            status: status
-          };
+        if (athleteError) throw athleteError;
 
-          // КРИТИЧНО: Если у атлета есть group_name, явно сохраняем его
-          if (existingAthlete.group_name) {
-            updateData.group_name = existingAthlete.group_name;
-          }
-
-          const { data: updated, error: updateError } = await supabase
-            .from('athletes')
-            .update(updateData)
-            .eq('id', existingAthlete.id)
-            .select('id')
-            .single();
-
-          if (updateError) throw updateError;
-          athleteId = updated.id;
-          
-          console.log(`✅ ${fullName} → ${status} (группа: ${existingAthlete.group_name || 'не указана'})`);
-        } else {
-          // ✅ ШАГ 3: INSERT нового атлета БЕЗ group_name (будет установлена вручную)
-          const { data: inserted, error: insertError } = await supabase
-            .from('athletes')
-            .insert({
-              name: fullName,
-              status: status,
-              group_name: null // Группа будет назначена тренером вручную
-            })
-            .select('id')
-            .single();
-
-          if (insertError) throw insertError;
-          athleteId = inserted.id;
-          
-          console.log(`✅ ${fullName} → ${status} (новый атлет, группа не указана)`);
-        }
-
+        const athleteId = athleteResult?.athlete_id || athleteResult;
         athleteSuccessCount++;
 
-        // ✅ ШАГ 4: Синхронизация абонементов для этого атлета
+        // Step 2: Sync subscriptions for this athlete
         const userSubscriptions = subscriptionsByUser[userId] || [];
         const syncedSubs = await syncSubscriptionsToSupabase(athleteId, userSubscriptions);
         subscriptionSuccessCount += syncedSubs;
+
+        console.log(`✅ ${fullName} → ${status} (${syncedSubs} subscriptions)`);
 
       } catch (err) {
         console.error(`❌ Error syncing user ${userId}:`, err.message);

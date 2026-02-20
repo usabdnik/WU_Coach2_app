@@ -56,6 +56,10 @@ out/
 coverage/
 .nyc_output/
 
+# AI tool configs (local)
+.claude/
+.serena/
+
 # Misc
 .cache/
 .env.supabase
