@@ -4,9 +4,14 @@
 # Tests all CRUD operations after schema is deployed
 # ============================================================================
 
-SUPABASE_URL="https://mjkssesvhowmncyctmvs.supabase.co"
-ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNjU2MzgsImV4cCI6MjA3NTc0MTYzOH0.jRoTOGiwjF79DdTFmerhpBFqu6tmHob3jwGeHJxiuO0"
-SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDE2NTYzOCwiZXhwIjoyMDc1NzQxNjM4fQ.BhsnDBKI8HRPmxd3BDIDxjpgZpYTa96-TUIMyMO2Mvs"
+# Load from .env file
+if [ -f "migration/.env" ]; then
+    export $(grep -v '^#' migration/.env | xargs)
+fi
+
+SUPABASE_URL="${SUPABASE_URL}"
+ANON_KEY="${SUPABASE_ANON_KEY:-$SUPABASE_SERVICE_KEY}"
+SERVICE_KEY="${SUPABASE_SERVICE_KEY}"
 
 # Use service_role for testing (bypass RLS)
 KEY="${SERVICE_KEY}"

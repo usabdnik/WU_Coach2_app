@@ -143,7 +143,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN
 
 **Service Role Key** (для миграции, НЕ для PWA):
 ```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDE2NTYzOCwiZXhwIjoyMDc1NzQxNjM4fQ.BhsnDBKI8HRPmxd3BDIDxjpgZpYTa96-TUIMyMO2Mvs
+[SERVICE_ROLE_KEY - see migration/.env]
 ```
 
 ⚠️ **ВАЖНО**: Service role key использовать ТОЛЬКО для серверных операций!

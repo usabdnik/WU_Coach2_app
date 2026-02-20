@@ -489,7 +489,7 @@ https://mjkssesvhowmncyctmvs.supabase.co
 
 **PostgreSQL (psql):**
 ```bash
-psql "postgresql://postgres:ldlRv6IIV6aHpPqj@db.mjkssesvhowmncyctmvs.supabase.co:5432/postgres"
+psql "postgresql://postgres:[DB_PASSWORD - see migration/.env]@db.mjkssesvhowmncyctmvs.supabase.co:5432/postgres"
 ```
 
 **REST API:**

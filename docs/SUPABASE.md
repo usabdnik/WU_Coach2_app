@@ -27,20 +27,11 @@
 https://mjkssesvhowmncyctmvs.supabase.co
 ```
 
-**Anon Key** (для PWA):
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNjU2MzgsImV4cCI6MjA3NTc0MTYzOH0.jRoTOGiwjF79DdTFmerhpBFqu6tmHob3jwGeHJxiuO0
-```
+**Anon Key** (для PWA): см. `index.html` строка ~1689 (публичный, с RLS)
 
-**Service Role Key** (только для миграций):
-```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qa3NzZXN2aG93bW5jeWN0bXZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDE2NTYzOCwiZXhwIjoyMDc1NzQxNjM4fQ.BhsnDBKI8HRPmxd3BDIDxjpgZpYTa96-TUIMyMO2Mvs
-```
+**Service Role Key** (только для миграций): см. `migration/.env` (NEVER commit!)
 
-**PostgreSQL Connection:**
-```bash
-psql "postgresql://postgres:ldlRv6IIV6aHpPqj@db.mjkssesvhowmncyctmvs.supabase.co:5432/postgres"
-```
+**PostgreSQL Connection:** см. `migration/.env` (NEVER commit!)
 
 ### API Access
 
