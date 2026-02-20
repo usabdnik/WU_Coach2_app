@@ -170,6 +170,10 @@ const { data, error } = await supabase
 
 ---
 
+### Supabase Account
+- **Email**: dolanmike419@gmail.com
+- **Dashboard**: https://supabase.com/dashboard/project/mjkssesvhowmncyctmvs
+
 ### Credentials Location
 - **File**: `migration/.env`
 - **Memory**: `mcp__serena__read_memory("SUPABASE_CREDENTIALS")`
@@ -587,7 +591,7 @@ Verify contrast: https://webaim.org/resources/contrastchecker/
 ## 📞 Contact & Support
 
 **Project Owner**: Nikita Izboldin
-**Repository**: https://github.com/nikitaizboldin/WU_Coach2_app
+**Repository**: https://github.com/usabdnik/WU_Coach2_app
 **Claude Configuration**: Uses SuperClaude Framework with ultrathink mode
 
 **For Questions**:

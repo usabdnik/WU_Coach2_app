@@ -39,7 +39,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/nikitaizboldin/WU_Coach2_app.git
+git clone https://github.com/usabdnik/WU_Coach2_app.git
 cd WU_Coach2_app
 
 # No installation needed - it's a single HTML file!
@@ -364,15 +364,15 @@ WU_Coach2_GH_SK/
 ## 👤 Author
 
 **Nikita Izboldin**
-- GitHub: [@nikitaizboldin](https://github.com/nikitaizboldin)
+- GitHub: [@usabdnik](https://github.com/usabdnik)
 - Project: WU Coach 2
 
 ---
 
 ## 🔗 Links
 
-- **Repository**: https://github.com/nikitaizboldin/WU_Coach2_app
-- **Issues**: https://github.com/nikitaizboldin/WU_Coach2_app/issues
+- **Repository**: https://github.com/usabdnik/WU_Coach2_app
+- **Issues**: https://github.com/usabdnik/WU_Coach2_app/issues
 - **Documentation**: `.specify/memory/` folder
 
 ---
