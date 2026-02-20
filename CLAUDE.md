@@ -636,8 +636,43 @@ Before committing code changes:
 - Supabase PostgreSQL 15+ (remote primary), localStorage (offline cache) (005-schedule-rank-subscription)
 - Vanilla JavaScript ES6+ (arrow functions, async/await, destructuring, template literals) + NONE (zero runtime dependencies, Supabase JS SDK via CDN already present) (007-group-analytics)
 - localStorage API (primary, 5-10MB quota) + Supabase PostgreSQL (secondary sync) (007-group-analytics)
+- Vanilla JavaScript ES6+ (in-browser), HTML5, CSS3 + None (Supabase JS SDK via CDN already loaded) (008-training-journal)
+- localStorage (primary, offline), Supabase PostgreSQL (secondary, sync) (008-training-journal)
 
 ## Recent Changes
+
+### 2026-02-20: Feature 008 — Training Journal (Тренерский журнал)
+- ✅ Full-screen journal view with group selection (nav tab 📓)
+- ✅ Table display: name + 3 exercises (Подт/Отж/Бр) + all-time records
+- ✅ Inline cell editing: tap → numeric input → Enter/blur saves
+- ✅ Exercise filter: has/missing toggle per exercise (3-state cycle)
+- ✅ Multi-group selection with group subheaders
+- ✅ Progress counter "Принято: X/Y"
+- ✅ Offline-first: localStorage + pendingChanges (same format as recordsForm)
+- ✅ All code in index.html (~640 lines added: CSS ~225, HTML ~18, JS ~395)
+
+**Key Line References (index.html)**:
+
+| Feature | Function/Section | Line Range |
+|---------|-----------------|------------|
+| Journal CSS | `.journal-view`, `.journal-table`, `.journal-cell` | ~1359-1582 |
+| Journal HTML | `#journal-view` container | ~1640-1657 |
+| Nav button | `data-nav="journal"` | ~1630 |
+| Journal state | `journalSelectedGroups`, `JOURNAL_EXERCISES` | ~5570-5579 |
+| `getCurrentMonthIndex()` | Maps JS month to MONTHS index | ~5582 |
+| `openJournalView()` | Show overlay, calc records, render | ~5589 |
+| `closeJournalView()` | Hide overlay, restore main view | ~5614 |
+| `renderJournalGroupChips()` | Group filter chips from AVAILABLE_GROUPS | ~5635 |
+| `toggleJournalGroup()` | Multi-select group toggle | ~5645 |
+| `renderJournalExerciseFilter()` | Exercise has/missing filter chips | ~5659 |
+| `toggleJournalExerciseFilter()` | 3-state cycle: off → has → missing → off | ~5679 |
+| `getJournalFilteredAthletes()` | Apply group + exercise filters, sort by lastName | ~5696 |
+| `renderJournalTable()` | Main table render with multi-group headers | ~5729 |
+| `renderJournalRow()` | Single athlete row: name + 3 cells + records | ~5783 |
+| `updateJournalCounter()` | "Принято: X/Y" badge | ~5808 |
+| `startJournalCellEdit()` | Replace cell with input on tap | ~5817 |
+| `saveJournalCellValue()` | Parse, validate, save to memory + localStorage + pendingChanges | ~5889 |
+| `cancelJournalCellEdit()` | Revert cell to display mode | ~5952 |
 
 ### 2025-11-23: Project Structure Optimization
 - ✅ Consolidated Supabase documentation → `docs/SUPABASE.md`

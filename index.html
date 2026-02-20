@@ -1355,6 +1355,261 @@
         .dropdown-list::-webkit-scrollbar-thumb:hover {
             background: #6bb0ff;
         }
+        /* ============================================================================
+           Journal View Styles (Feature: 008-training-journal)
+           ============================================================================ */
+
+        .journal-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0f1117;
+            z-index: 200;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .journal-view.show {
+            display: block;
+        }
+
+        .journal-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: #0f1117;
+            z-index: 10;
+        }
+
+        .journal-header__back {
+            background: none;
+            border: none;
+            color: #4c9eff;
+            font-size: 20px;
+            padding: 8px;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .journal-header__title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            flex: 1;
+        }
+
+        .journal-counter {
+            background: #4c9eff;
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .journal-filters {
+            padding: 0 15px 10px;
+        }
+
+        .journal-month-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 4px 15px 8px;
+        }
+
+        .journal-month-btn {
+            background: none;
+            border: 1px solid #2a2d3a;
+            color: #4c9eff;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .journal-month-label {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .journal-group-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .journal-group-chip {
+            background: #2a2d3a;
+            color: #8b8f9f;
+            border: none;
+            border-radius: 16px;
+            padding: 6px 14px;
+            min-height: 36px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .journal-group-chip--active {
+            background: #4c9eff;
+            color: #ffffff;
+        }
+
+        .journal-exercise-filters {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .journal-filter-chip {
+            background: #2a2d3a;
+            color: #8b8f9f;
+            border: none;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .journal-filter-chip--has {
+            background: #4ade80;
+            color: #0f1117;
+        }
+
+        .journal-filter-chip--missing {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        .journal-table-wrap {
+            padding: 0 10px;
+        }
+
+        .journal-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .journal-table th {
+            position: sticky;
+            top: 62px;
+            background: #1a1d29;
+            color: #8b8f9f;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 4px;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .journal-table th:first-child {
+            text-align: left;
+            padding-left: 10px;
+            width: 40%;
+        }
+
+        .journal-table td {
+            min-height: 44px;
+            padding: 8px 4px;
+            border-bottom: 1px solid #2a2d3a;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .journal-table td:first-child {
+            text-align: left;
+            padding-left: 10px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .journal-cell {
+            cursor: pointer;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .journal-cell__value {
+            font-size: 17px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .journal-cell__record {
+            font-size: 11px;
+            color: #6b6f82;
+            margin-top: 1px;
+        }
+
+        .journal-cell--empty .journal-cell__value {
+            color: #6b6f82;
+        }
+
+        .journal-cell input {
+            width: 100%;
+            max-width: 60px;
+            background: #2a2d3a;
+            color: #ffffff;
+            border: 1px solid #4c9eff;
+            border-radius: 6px;
+            font-size: 17px;
+            text-align: center;
+            padding: 4px;
+            min-height: 36px;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            outline: none;
+        }
+
+        .journal-cell input::-webkit-inner-spin-button,
+        .journal-cell input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .journal-group-header td {
+            background: #1a1d29;
+            color: #4c9eff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .journal-empty-msg {
+            text-align: center;
+            color: #6b6f82;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -1402,10 +1657,38 @@
             <div class="nav-icon">⚙️</div>
             <div>Настройки</div>
         </button>
+        <button class="nav-item" data-nav="journal" onclick="openJournalView()">
+            <div class="nav-icon">📓</div>
+            <div>Журнал</div>
+        </button>
         <button class="nav-item" data-nav="logs" onclick="openLogPanel()">
             <div class="nav-icon">📋</div>
             <div>Логи</div>
         </button>
+    </div>
+
+    <!-- Журнал (Feature: 008-training-journal) -->
+    <div id="journal-view" class="journal-view">
+        <div class="journal-header">
+            <button class="journal-header__back" onclick="closeJournalView()">←</button>
+            <div class="journal-header__title">Журнал</div>
+            <span id="journal-counter" class="journal-counter"></span>
+        </div>
+        <div class="journal-month-selector">
+            <button class="journal-month-btn" onclick="changeJournalMonth(-1)">‹</button>
+            <span id="journal-month-label" class="journal-month-label"></span>
+            <button class="journal-month-btn" onclick="changeJournalMonth(1)">›</button>
+        </div>
+        <div class="journal-filters">
+            <div id="journal-group-chips" class="journal-group-chips"></div>
+            <div id="journal-exercise-filter" class="journal-exercise-filters"></div>
+        </div>
+        <div class="journal-table-wrap">
+            <table class="journal-table">
+                <thead id="journal-thead"></thead>
+                <tbody id="journal-tbody"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Модальное окно: Детали ученика -->
@@ -5313,6 +5596,426 @@
             if (athletesNavItem) {
                 athletesNavItem.classList.add('active');
             }
+        }
+
+        // ============================================================================
+        // Feature 008: Training Journal (Тренерский журнал)
+        // ============================================================================
+
+        // === Journal State ===
+        let journalSelectedGroups = [];
+        let journalExerciseFilter = { field: null, mode: null };
+        let journalEditingCell = null;
+        let journalMonthIndex = null; // null = текущий месяц
+
+        const JOURNAL_EXERCISES = [
+            { field: 'pullUps', label: 'Подт', fullLabel: 'Подтягивания' },
+            { field: 'pushUps', label: 'Отж', fullLabel: 'Отжимания' },
+            { field: 'dips', label: 'Бр', fullLabel: 'Брусья' }
+        ];
+
+        // Current month index in season (0=Сент, 11=Авг)
+        function getCurrentMonthIndex() {
+            const jsMonth = new Date().getMonth(); // 0-11
+            return jsMonth >= 8 ? jsMonth - 8 : jsMonth + 4;
+        }
+
+        // === Month Selector ===
+
+        function getJournalMonthIndex() {
+            return journalMonthIndex !== null ? journalMonthIndex : getCurrentMonthIndex();
+        }
+
+        function updateJournalMonthLabel() {
+            const label = document.getElementById('journal-month-label');
+            if (label) {
+                label.textContent = MONTHS[getJournalMonthIndex()];
+            }
+        }
+
+        function changeJournalMonth(delta) {
+            let idx = getJournalMonthIndex() + delta;
+            if (idx < 0) idx = 11;
+            if (idx > 11) idx = 0;
+            journalMonthIndex = idx;
+            console.log('📓 Месяц:', MONTHS[idx]);
+            updateJournalMonthLabel();
+            cancelJournalCellEdit();
+            renderJournalTable();
+        }
+
+        // === Open / Close Journal ===
+
+        function openJournalView() {
+            console.log('📓 Открытие журнала');
+
+            // Сбросить месяц на текущий
+            journalMonthIndex = null;
+
+            // Скрыть основной контейнер и шапку
+            const container = document.querySelector('.container');
+            if (container) container.style.display = 'none';
+            const header = document.querySelector('.header');
+            if (header) header.style.display = 'none';
+
+            // Показать журнал
+            const journalView = document.getElementById('journal-view');
+            if (journalView) journalView.classList.add('show');
+
+            // Обновить навигацию
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const journalNav = document.querySelector('.nav-item[data-nav="journal"]');
+            if (journalNav) journalNav.classList.add('active');
+
+            // Подготовить данные
+            calculateAllTimeRecords();
+            updateJournalMonthLabel();
+            renderJournalGroupChips();
+            renderJournalExerciseFilter();
+            renderJournalTable();
+        }
+
+        function closeJournalView() {
+            console.log('📓 Закрытие журнала');
+
+            const journalView = document.getElementById('journal-view');
+            if (journalView) journalView.classList.remove('show');
+
+            const container = document.querySelector('.container');
+            if (container) container.style.display = 'block';
+            const header = document.querySelector('.header');
+            if (header) header.style.display = '';
+
+            // Сбросить состояние редактирования
+            journalEditingCell = null;
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const athletesNav = document.querySelector('.nav-item[data-nav="athletes"]');
+            if (athletesNav) athletesNav.classList.add('active');
+        }
+
+        // === Group Chips ===
+
+        function renderJournalGroupChips() {
+            const container = document.getElementById('journal-group-chips');
+            if (!container) return;
+
+            container.innerHTML = AVAILABLE_GROUPS.map(group => {
+                const isActive = journalSelectedGroups.includes(group);
+                return `<button class="journal-group-chip${isActive ? ' journal-group-chip--active' : ''}" onclick="toggleJournalGroup('${group}')">${group}</button>`;
+            }).join('');
+        }
+
+        function toggleJournalGroup(groupName) {
+            const idx = journalSelectedGroups.indexOf(groupName);
+            if (idx >= 0) {
+                journalSelectedGroups.splice(idx, 1);
+            } else {
+                journalSelectedGroups.push(groupName);
+            }
+            console.log('📓 Выбраны группы:', journalSelectedGroups.join(', ') || '(нет)');
+            renderJournalGroupChips();
+            renderJournalTable();
+        }
+
+        // === Exercise Filter ===
+
+        function renderJournalExerciseFilter() {
+            const container = document.getElementById('journal-exercise-filter');
+            if (!container) return;
+
+            container.innerHTML = JOURNAL_EXERCISES.map(ex => {
+                let cls = 'journal-filter-chip';
+                let text = ex.label;
+                if (journalExerciseFilter.field === ex.field) {
+                    if (journalExerciseFilter.mode === 'has') {
+                        cls += ' journal-filter-chip--has';
+                        text = '✓ ' + ex.label;
+                    } else if (journalExerciseFilter.mode === 'missing') {
+                        cls += ' journal-filter-chip--missing';
+                        text = '✗ ' + ex.label;
+                    }
+                }
+                return `<button class="${cls}" onclick="toggleJournalExerciseFilter('${ex.field}')">${text}</button>`;
+            }).join('');
+        }
+
+        function toggleJournalExerciseFilter(field) {
+            if (journalExerciseFilter.field === field) {
+                // Cycle: has → missing → off
+                if (journalExerciseFilter.mode === 'has') {
+                    journalExerciseFilter.mode = 'missing';
+                } else {
+                    journalExerciseFilter = { field: null, mode: null };
+                }
+            } else {
+                journalExerciseFilter = { field: field, mode: 'has' };
+            }
+            renderJournalExerciseFilter();
+            renderJournalTable();
+        }
+
+        // === Filtered Athletes ===
+
+        function getJournalFilteredAthletes() {
+            const monthIndex = getJournalMonthIndex();
+
+            let filtered = athletesData.filter(a => {
+                // Без группы — не показываем
+                if (!a.group) return false;
+                // Только активные
+                if (a.status && a.status !== 'active') return false;
+                // Фильтр по группам
+                if (journalSelectedGroups.length > 0 && !journalSelectedGroups.includes(a.group)) return false;
+                return true;
+            });
+
+            // Фильтр по упражнению
+            if (journalExerciseFilter.field && journalExerciseFilter.mode) {
+                const f = journalExerciseFilter.field;
+                const m = journalExerciseFilter.mode;
+                filtered = filtered.filter(a => {
+                    const perf = a.performance && a.performance[monthIndex];
+                    const val = perf ? perf[f] : undefined;
+                    if (m === 'has') return val !== undefined && val !== null && val > 0;
+                    if (m === 'missing') return val === undefined || val === null || val === 0;
+                    return true;
+                });
+            }
+
+            // Сортировка по фамилии
+            filtered.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || '', 'ru'));
+            return filtered;
+        }
+
+        // === Render Table ===
+
+        function renderJournalTable() {
+            const thead = document.getElementById('journal-thead');
+            const tbody = document.getElementById('journal-tbody');
+            if (!thead || !tbody) return;
+
+            const monthIndex = getJournalMonthIndex();
+
+            // Заголовок таблицы
+            thead.innerHTML = `<tr><th>Имя</th>${JOURNAL_EXERCISES.map(ex => `<th>${ex.label}</th>`).join('')}</tr>`;
+
+            // Пустое состояние
+            if (journalSelectedGroups.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="journal-empty-msg">Выберите группу</td></tr>`;
+                updateJournalCounter(0, 0);
+                return;
+            }
+
+            const filtered = getJournalFilteredAthletes();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="journal-empty-msg">Нет учеников в группе</td></tr>`;
+                updateJournalCounter(0, 0);
+                return;
+            }
+
+            // Мультигрупповой режим: группировка с подзаголовками
+            if (journalSelectedGroups.length > 1) {
+                let html = '';
+                journalSelectedGroups.forEach(groupName => {
+                    const groupAthletes = filtered.filter(a => a.group === groupName);
+                    if (groupAthletes.length === 0) return;
+                    html += `<tr class="journal-group-header"><td colspan="4">${groupName} (${groupAthletes.length})</td></tr>`;
+                    groupAthletes.forEach(athlete => {
+                        html += renderJournalRow(athlete, monthIndex);
+                    });
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = filtered.map(athlete => renderJournalRow(athlete, monthIndex)).join('');
+            }
+
+            const totalForCounter = athletesData.filter(a => a.group && journalSelectedGroups.includes(a.group) && (!a.status || a.status === 'active')).length;
+            const withValues = athletesData.filter(a => {
+                if (!a.group || !journalSelectedGroups.includes(a.group)) return false;
+                if (a.status && a.status !== 'active') return false;
+                const perf = a.performance && a.performance[monthIndex];
+                if (!perf) return false;
+                return (perf.pullUps > 0) || (perf.pushUps > 0) || (perf.dips > 0);
+            }).length;
+
+            updateJournalCounter(withValues, totalForCounter);
+            console.log('📓 Отрисовка: ' + filtered.length + ' учеников');
+        }
+
+        function renderJournalRow(athlete, monthIndex) {
+            const perf = (athlete.performance && athlete.performance[monthIndex]) || {};
+            const records = allTimeRecords[athlete.id] || {};
+            const nameDisplay = athlete.lastName + ' ' + (athlete.firstName ? athlete.firstName.charAt(0) + '.' : '');
+
+            let cells = '';
+            JOURNAL_EXERCISES.forEach(ex => {
+                const val = perf[ex.field];
+                const rec = records[ex.field] || 0;
+                const hasValue = val !== undefined && val !== null;
+                const displayVal = hasValue ? String(val) : '—';
+                const isEmpty = !hasValue;
+
+                // Показать рекорд если > 0 и отличается от текущего значения
+                let recordHtml = '';
+                if (rec > 0 && (!hasValue || rec !== val)) {
+                    recordHtml = `<div class="journal-cell__record">р:${rec}</div>`;
+                }
+
+                cells += `<td><div class="journal-cell${isEmpty ? ' journal-cell--empty' : ''}" onclick="startJournalCellEdit('${athlete.id}', '${ex.field}')"><div class="journal-cell__value">${displayVal}</div>${recordHtml}</div></td>`;
+            });
+
+            return `<tr>${'<td>' + nameDisplay + '</td>'}${cells}</tr>`;
+        }
+
+        function updateJournalCounter(withValues, total) {
+            const counter = document.getElementById('journal-counter');
+            if (counter) {
+                counter.textContent = `Принято: ${withValues}/${total}`;
+            }
+        }
+
+        // === Cell Editing ===
+
+        function startJournalCellEdit(athleteId, exerciseField) {
+            // Отменить предыдущее редактирование
+            if (journalEditingCell) {
+                cancelJournalCellEdit();
+            }
+
+            const athlete = athletesData.find(a => a.id === athleteId);
+            if (!athlete) return;
+
+            const monthIndex = getJournalMonthIndex();
+            const perf = (athlete.performance && athlete.performance[monthIndex]) || {};
+            const currentVal = perf[exerciseField];
+            const hasValue = currentVal !== undefined && currentVal !== null;
+
+            const exName = JOURNAL_EXERCISES.find(e => e.field === exerciseField)?.fullLabel || exerciseField;
+            console.log('📓 Редактирование: ' + athlete.lastName + ' ' + athlete.firstName + ' / ' + exName);
+
+            journalEditingCell = { athleteId, exerciseField };
+
+            // Найти ячейку и заменить на input
+            const rows = document.querySelectorAll('#journal-tbody tr');
+            for (const row of rows) {
+                const nameCell = row.querySelector('td:first-child');
+                if (!nameCell || row.classList.contains('journal-group-header')) continue;
+                // Проверяем по data-athlete-id или по тексту имени
+                const cells = row.querySelectorAll('td');
+                // Определяем индекс упражнения
+                const exIdx = JOURNAL_EXERCISES.findIndex(e => e.field === exerciseField);
+                if (exIdx < 0) continue;
+
+                // Проверяем — это нужный атлет? Используем onclick в ячейке
+                const cellDiv = cells[exIdx + 1]?.querySelector('.journal-cell');
+                if (cellDiv && cellDiv.getAttribute('onclick')?.includes(athleteId)) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.inputMode = 'numeric';
+                    input.pattern = '[0-9]*';
+                    input.min = '0';
+                    if (hasValue && currentVal > 0) input.value = currentVal;
+                    input.style.cssText = 'width:100%;max-width:60px;background:#2a2d3a;color:#fff;border:1px solid #4c9eff;border-radius:6px;font-size:17px;text-align:center;padding:4px;min-height:36px;-webkit-appearance:none;outline:none';
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveJournalCellValue(athleteId, exerciseField, input.value);
+                        } else if (e.key === 'Escape') {
+                            cancelJournalCellEdit();
+                        }
+                    });
+
+                    input.addEventListener('blur', () => {
+                        // Небольшая задержка чтобы не конфликтовать с Enter
+                        setTimeout(() => {
+                            if (journalEditingCell && journalEditingCell.athleteId === athleteId && journalEditingCell.exerciseField === exerciseField) {
+                                if (input.value.trim() === '') {
+                                    cancelJournalCellEdit();
+                                } else {
+                                    saveJournalCellValue(athleteId, exerciseField, input.value);
+                                }
+                            }
+                        }, 100);
+                    });
+
+                    cellDiv.innerHTML = '';
+                    cellDiv.appendChild(input);
+                    cellDiv.setAttribute('onclick', ''); // Убрать onclick пока редактируем
+                    input.focus();
+                    return;
+                }
+            }
+        }
+
+        function saveJournalCellValue(athleteId, exerciseField, rawValue) {
+            const athlete = athletesData.find(a => a.id === athleteId);
+            if (!athlete) return;
+
+            const parsed = parseInt(rawValue, 10);
+            if (isNaN(parsed) || parsed < 0) {
+                cancelJournalCellEdit();
+                return;
+            }
+
+            const monthIndex = getJournalMonthIndex();
+            const exName = JOURNAL_EXERCISES.find(e => e.field === exerciseField)?.fullLabel || exerciseField;
+
+            // Обновить in-memory performance
+            if (!athlete.performance) {
+                athlete.performance = MONTHS.map(month => ({ month, pullUps: 0, pushUps: 0, dips: 0 }));
+            }
+            athlete.performance[monthIndex][exerciseField] = parsed;
+
+            // Обновить records
+            if (!athlete.records) athlete.records = { pullUps: {}, pushUps: {}, dips: {} };
+            if (!athlete.records[exerciseField]) athlete.records[exerciseField] = {};
+            if (parsed > 0) {
+                athlete.records[exerciseField][MONTHS[monthIndex]] = parsed;
+            } else {
+                delete athlete.records[exerciseField][MONTHS[monthIndex]];
+            }
+
+            // Пересчитать all-time рекорды
+            calculateAllTimeRecords();
+
+            // pendingChanges (тот же формат что recordsForm)
+            const studentData = {
+                id: athlete.id,
+                group: athlete.group,
+                schedule: athlete.schedule,
+                rank_start: athlete.rank_start,
+                rank_end: athlete.rank_end,
+                performance: athlete.performance.map(p => ({
+                    pullUps: p.pullUps,
+                    pushUps: p.pushUps,
+                    dips: p.dips
+                }))
+            };
+
+            pendingChanges.push({
+                type: 'athlete',
+                athleteId: athlete.id,
+                athleteName: `${athlete.lastName} ${athlete.firstName}`,
+                data: studentData
+            });
+
+            saveToLocalStorage();
+            updatePendingIndicator();
+
+            console.log('✅ Сохранено: ' + athlete.lastName + ' ' + athlete.firstName + ' / ' + exName + ' = ' + parsed);
+            console.log('⏳ Добавлено в очередь синхронизации');
+
+            // Сбросить состояние и перерисовать
+            journalEditingCell = null;
+            renderJournalTable();
+        }
+
+        function cancelJournalCellEdit() {
+            journalEditingCell = null;
+            renderJournalTable();
         }
 
         // ============================================================================
