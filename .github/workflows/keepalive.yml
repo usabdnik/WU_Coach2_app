@@ -1,0 +1,19 @@
+name: Keepalive - Prevent GitHub from disabling scheduled workflows
+
+on:
+  schedule:
+    # Раз в 50 дней (GitHub отключает cron после 60 дней без активности)
+    - cron: '0 12 */50 * *'
+
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🏓 Keepalive ping
+        uses: gautamkrishnar/keepalive-workflow@v2
