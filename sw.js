@@ -1,7 +1,7 @@
 // Service Worker для WU Coach PWA - Offline-First кэширование
 // Версия: 1.0.0
 
-const CACHE_NAME = 'wu-coach-v4-seasons';
+const CACHE_NAME = 'wu-coach-v5-record-labels';
 const CACHE_URLS = [
     './',
     './index.html',
