@@ -1996,6 +1996,12 @@
         let pendingChanges = [];
         let currentFilter = 'all';
         let currentSeason = null;
+        let isSyncing = false;
+        let recordsEditingSeason = null;
+        let seasonDataReady = false;
+        let hasStorageWriteLock = false;
+        let releaseStorageWriteLock = null;
+        let storageAccessNotice = '';
         let allTimeRecords = {};
         let isSubscriptionFilterActive = false;
         let subscriptionCache = null; // {data: [...], timestamp: Date}
@@ -2014,8 +2020,7 @@
         const MAX_LOG_ENTRIES = 100; // FIFO rotation
 
         // Определение текущего сезона
-        function getCurrentSeason() {
-            const now = new Date();
+        function getCurrentSeason(now = new Date()) {
             const month = now.getMonth() + 1; // 1-12
             const year = now.getFullYear();
 
@@ -2033,20 +2038,168 @@
             };
         }
 
-        // Рассчитываем all-time рекорды
+        // Даты замеров — календарные DATE, без преобразования в часовой пояс браузера.
+        function performanceSeason(date) {
+            if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+            const [year, month] = date.split('-').map(Number);
+            const parsed = new Date(`${date}T00:00:00Z`);
+            if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) return null;
+            const start = month >= 9 ? year : year - 1;
+            return `${start}-${start + 1}`;
+        }
+
+        function performanceDate(season, monthIndex) {
+            if (!/^\d{4}-\d{4}$/.test(season) || Number(season.slice(5)) !== Number(season.slice(0, 4)) + 1 ||
+                !Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+                throw new Error('Не удалось определить сезон замера');
+            }
+            const month = (monthIndex + 8) % 12 + 1;
+            const year = Number(season.slice(0, 4)) + (month < 9 ? 1 : 0);
+            return `${year}-${String(month).padStart(2, '0')}-15`;
+        }
+
+        function rebuildSeasonPerformance(athlete) {
+            athlete.performance = MONTHS.map(month => ({ month, pullUps: null, pushUps: null, dips: null }));
+            athlete.records = { pullUps: {}, pushUps: {}, dips: {} };
+            athlete.performanceIds = {};
+            // Последний датированный замер месяца; порядок ответа сервера значения не имеет.
+            [...(athlete.performanceHistory || [])].sort((a, b) =>
+                String(a.recorded_at).localeCompare(String(b.recorded_at)) ||
+                String(a.updated_at || '').localeCompare(String(b.updated_at || '')) ||
+                String(a.id).localeCompare(String(b.id))
+            ).forEach(row => {
+                const field = row.field || getExerciseFieldName(row.exercises?.name || '');
+                if (performanceSeason(row.recorded_at) !== currentSeason.name || !['pullUps', 'pushUps', 'dips'].includes(field)) return;
+                const monthIndex = (Number(row.recorded_at.slice(5, 7)) + 3) % 12;
+                const value = Number(row.value);
+                if (!Number.isFinite(value) || value < 0) return;
+                athlete.performance[monthIndex][field] = value;
+                athlete.records[field][MONTHS[monthIndex]] = value;
+                athlete.performanceIds[`${monthIndex}:${field}`] = row.id;
+            });
+        }
+
+        function isLegacyPerformanceChange(change) {
+            return change.type === 'athlete' && Array.isArray(change.data?.performance);
+        }
+
+        function prepareSeasonStorage() {
+            if (!hasStorageWriteLock) throw new Error('Это окно не может изменять локальные данные');
+            const legacyAthletes = athletesData.filter(a => !Array.isArray(a.performanceHistory));
+            if (legacyAthletes.length || pendingChanges.some(isLegacyPerformanceChange)) {
+                // Копия записывается ДО изменения старого формата. При нехватке места запуск остановится.
+                if (!localStorage.getItem('seasonMigrationBackupV1')) {
+                    localStorage.setItem('seasonMigrationBackupV1', JSON.stringify({
+                        athletesData: localStorage.getItem('athletesData'),
+                        pendingChanges: localStorage.getItem('pendingChanges'),
+                        savedAt: new Date().toISOString()
+                    }));
+                }
+                legacyAthletes.forEach(a => {
+                    a.legacyPerformance = { performance: a.performance, records: a.records, season: a.season };
+                    a.performanceHistory = [];
+                });
+            }
+            athletesData.forEach(rebuildSeasonPerformance);
+            if (!saveToLocalStorage()) throw new Error('Не удалось сохранить локальную копию замеров');
+            updateSeasonDataNotice();
+        }
+
+        function updateSeasonDataNotice() {
+            let notice = document.getElementById('seasonDataNotice');
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.id = 'seasonDataNotice';
+                notice.setAttribute('role', 'status');
+                notice.style.cssText = 'padding:12px;color:#fbbf24;font-size:14px';
+                document.getElementById('seasonIndicator').after(notice);
+            }
+            const unresolved = pendingChanges.filter(isLegacyPerformanceChange).length;
+            notice.textContent = storageAccessNotice || (unresolved
+                ? `Старые несинхронизированные замеры (${unresolved}) сохранены на устройстве. Их сезон нужно уточнить перед отправкой. Новые замеры синхронизируются отдельно.`
+                : athletesData.some(a => a.legacyPerformance)
+                    ? 'Нажмите «Синхронизировать», чтобы загрузить историю по сезонам. Старые данные сохранены на устройстве.'
+                    : '');
+            notice.hidden = !notice.textContent;
+        }
+
+        function refreshCurrentSeason() {
+            const next = getCurrentSeason();
+            if (currentSeason?.name === next.name) return false;
+            currentSeason = next;
+            athletesData.forEach(rebuildSeasonPerformance);
+            calculateAllTimeRecords();
+            updateSeasonIndicator();
+            journalMonthIndex = null;
+            journalEditingCell = null;
+            recordsEditingSeason = null;
+            closeModal('recordsModal');
+            closeModal('athleteModal');
+            renderAthletes();
+            renderJournalTable();
+            updateJournalMonthLabel();
+            return true;
+        }
+
+        function canEditPerformances(season) {
+            if (!hasStorageWriteLock || !seasonDataReady) return false;
+            refreshCurrentSeason();
+            if (season !== currentSeason.name) {
+                alert('Начался новый сезон. Откройте замеры заново; старые данные сохранены.');
+                return false;
+            }
+            if (isSyncing) {
+                alert('Дождитесь завершения синхронизации перед изменением замеров.');
+                return false;
+            }
+            return true;
+        }
+
+        function queuePerformanceValues(athlete, values, season) {
+            if (!hasStorageWriteLock || !seasonDataReady) throw new Error('Это окно не может изменять замеры');
+            if (season !== currentSeason.name || isSyncing) throw new Error('Откройте замеры заново после синхронизации');
+            const rows = [];
+            const exerciseNames = { pullUps: 'Подтягивания', pushUps: 'Отжимания от пола', dips: 'Отжимания от брусьев' };
+            for (const entry of values) {
+                const { monthIndex, field } = entry;
+                const value = entry.value ?? 0;
+                if (!Object.prototype.hasOwnProperty.call(exerciseNames, field) || !Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11 ||
+                    !Number.isSafeInteger(value) || value < 0) throw new Error('Введите целое неотрицательное число повторений');
+                const previous = athlete.performance[monthIndex][field];
+                if (value === previous || (entry.value === null && previous === null)) continue;
+                const exercise = exercisesData.find(e => e.name === exerciseNames[field]);
+                if (!exercise) throw new Error('Сначала загрузите список упражнений через синхронизацию');
+                const existingId = athlete.performanceIds[`${monthIndex}:${field}`];
+                const existing = athlete.performanceHistory.find(row => row.id === existingId);
+                rows.push({
+                    id: existing?.id || generateUUID(), athlete_id: athlete.id, exercise_id: exercise.id,
+                    value, recorded_at: existing?.recorded_at || performanceDate(season, monthIndex),
+                    field, updated_at: new Date().toISOString()
+                });
+            }
+            for (const row of rows) {
+                const index = athlete.performanceHistory.findIndex(p => p.id === row.id);
+                if (index < 0) athlete.performanceHistory.push(row);
+                else athlete.performanceHistory[index] = { ...athlete.performanceHistory[index], ...row };
+                pendingChanges.push({ type: 'performance', athleteId: athlete.id, season, data: { ...row } });
+            }
+            rebuildSeasonPerformance(athlete);
+            calculateAllTimeRecords();
+        }
+
+        // Рассчитываем all-time рекорды из истории ВСЕХ сезонов.
         function calculateAllTimeRecords() {
             allTimeRecords = {};
 
             athletesData.forEach(athlete => {
-                const allPullUps = Object.values(athlete.records?.pullUps || {});
-                const allPushUps = Object.values(athlete.records?.pushUps || {});
-                const allDips = Object.values(athlete.records?.dips || {});
-
-                allTimeRecords[athlete.id] = {
-                    pullUps: allPullUps.length > 0 ? Math.max(...allPullUps) : 0,
-                    pushUps: allPushUps.length > 0 ? Math.max(...allPushUps) : 0,
-                    dips: allDips.length > 0 ? Math.max(...allDips) : 0
-                };
+                const records = { pullUps: 0, pushUps: 0, dips: 0 };
+                (athlete.performanceHistory || []).forEach(row => {
+                    const field = row.field || getExerciseFieldName(row.exercises?.name || '');
+                    if (Object.prototype.hasOwnProperty.call(records, field) && performanceSeason(row.recorded_at) && Number.isFinite(Number(row.value))) {
+                        records[field] = Math.max(records[field], Number(row.value));
+                    }
+                });
+                allTimeRecords[athlete.id] = records;
             });
         }
 
@@ -2074,7 +2227,6 @@
                 }
             });
             if (migrated > 0) {
-                localStorage.setItem('goalsData', JSON.stringify(goalsData));
                 console.log(`✅ Миграция: добавлено updatedAt для ${migrated} целей`);
             }
         }
@@ -2107,7 +2259,6 @@
             });
 
             if (migrated > 0) {
-                localStorage.setItem('athletesData', JSON.stringify(athletesData));
                 console.log(`✅ Миграция: обновлено полей для ${migrated} спортсменов`);
             }
         }
@@ -2144,7 +2295,6 @@
             });
 
             if (migrated > 0) {
-                localStorage.setItem('goalsData', JSON.stringify(goalsData));
                 console.log(`✅ Миграция: добавлено ID для ${migrated} целей`);
             }
 
@@ -2542,7 +2692,6 @@
             goalsData.push(newGoal);
 
             // Save to localStorage
-            localStorage.setItem('goalsData', JSON.stringify(goalsData));
 
             // Add to pendingChanges
             pendingChanges.push({
@@ -2551,7 +2700,10 @@
                 goalData: newGoal,
                 timestamp: new Date().toISOString()
             });
-            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+            if (!saveToLocalStorage()) {
+                alert('Не удалось сохранить изменения на устройстве. Не закрывайте приложение; освободите место и повторите сохранение.');
+                return;
+            }
 
             // Update UI
             updatePendingIndicator();
@@ -2600,7 +2752,6 @@
             goal.updatedAt = new Date().toISOString();
 
             // Сохраняем в localStorage
-            localStorage.setItem('goalsData', JSON.stringify(goalsData));
             console.log('💾 Цель обновлена в localStorage:', goal.id);
 
             // Добавляем в очередь синхронизации
@@ -2614,7 +2765,10 @@
                 },
                 timestamp: new Date().toISOString()
             });
-            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+            if (!saveToLocalStorage()) {
+                alert('Не удалось сохранить изменения на устройстве. Не закрывайте приложение; освободите место и повторите сохранение.');
+                return;
+            }
             console.log('📤 Изменение добавлено в очередь синхронизации');
 
             // Обновляем UI
@@ -2641,6 +2795,47 @@
             }
         }
 
+        // Единственное редактируемое окно: localStorage не объединяет снимки разных вкладок.
+        function acquireStorageWriter() {
+            if (hasStorageWriteLock) return Promise.resolve(true);
+            if (!navigator.locks) {
+                storageAccessNotice = 'Для безопасного сохранения замеров нужен современный браузер. Обновите браузер и откройте приложение через HTTPS. Данные не изменены.';
+                updateSeasonDataNotice();
+                return Promise.resolve(false);
+            }
+            return new Promise(resolve => {
+                navigator.locks.request('wu-coach-season-storage', { mode: 'exclusive', ifAvailable: true }, lock => {
+                    if (!lock) {
+                        storageAccessNotice = 'Приложение уже открыто в другом окне. Продолжите работу там либо закройте его и перезагрузите эту страницу. Данные не изменены.';
+                        updateSeasonDataNotice();
+                        resolve(false);
+                        return;
+                    }
+                    hasStorageWriteLock = true;
+                    storageAccessNotice = '';
+                    resolve(true);
+                    // Браузер также освобождает блокировку при закрытии или аварии вкладки.
+                    return new Promise(release => { releaseStorageWriteLock = release; });
+                }).catch(error => {
+                    console.error('Не удалось защитить локальное хранилище:', error);
+                    storageAccessNotice = 'Не удалось защитить замеры от записи из другого окна. Перезагрузите страницу. Данные не изменены.';
+                    updateSeasonDataNotice();
+                    resolve(false);
+                });
+            });
+        }
+
+        window.addEventListener('pagehide', () => {
+            hasStorageWriteLock = false;
+            seasonDataReady = false;
+            if (releaseStorageWriteLock) releaseStorageWriteLock();
+            releaseStorageWriteLock = null;
+        });
+        window.addEventListener('pageshow', event => {
+            // Возврат из back/forward cache требует новой блокировки и свежего снимка.
+            if (event.persisted) window.location.reload();
+        });
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Инициализация...');
@@ -2649,7 +2844,15 @@
             console.log('📅 Текущий сезон:', currentSeason.name);
             updateSeasonIndicator();
 
-            loadFromLocalStorage();
+            if (!await acquireStorageWriter()) return;
+            try {
+                if (!loadFromLocalStorage()) throw new Error('Не удалось прочитать сохранённые данные');
+                prepareSeasonStorage();
+                seasonDataReady = true;
+            } catch (error) {
+                alert('Не удалось прочитать или сохранить локальную копию. Не очищайте данные приложения: старые замеры сохранены, требуется проверка хранилища.');
+                return;
+            }
 
             // Добавить тестовые логи для демонстрации панели (только если история пустая)
             if (logHistory.length === 0) {
@@ -2694,11 +2897,17 @@
         // LocalStorage
         function loadFromLocalStorage() {
             try {
-                athletesData = JSON.parse(localStorage.getItem('athletesData') || '[]');
-                exercisesData = JSON.parse(localStorage.getItem('exercisesData') || '[]');
-                goalsData = JSON.parse(localStorage.getItem('goalsData') || '[]');
-                pendingChanges = JSON.parse(localStorage.getItem('pendingChanges') || '[]');
-                logHistory = JSON.parse(localStorage.getItem('logHistory') || '[]');
+                const state = JSON.parse(localStorage.getItem('seasonStateV1') || 'null');
+                const savedAthletes = state ? state.athletesData : JSON.parse(localStorage.getItem('athletesData') || '[]');
+                const savedChanges = state ? state.pendingChanges : JSON.parse(localStorage.getItem('pendingChanges') || '[]');
+                if (!Array.isArray(savedAthletes) || !Array.isArray(savedChanges)) throw new Error('Повреждена локальная копия замеров');
+                athletesData = savedAthletes;
+                exercisesData = state ? state.exercisesData : JSON.parse(localStorage.getItem('exercisesData') || '[]');
+                goalsData = state ? state.goalsData : JSON.parse(localStorage.getItem('goalsData') || '[]');
+                if (!Array.isArray(exercisesData) || !Array.isArray(goalsData)) throw new Error('Повреждён локальный справочник');
+                pendingChanges = savedChanges;
+                try { logHistory = JSON.parse(localStorage.getItem('logHistory') || '[]'); }
+                catch (_) { logHistory = []; } // Ошибка диагностического журнала не затрагивает замеры.
 
                 console.log('📂 Загружено из localStorage:');
                 console.log('  Ученики:', athletesData.length);
@@ -2710,24 +2919,20 @@
                 if (athletesData.length > 0) {
                     console.log('  Пример данных первого ученика:', athletesData[0]);
                 }
+                return true;
             } catch (e) {
                 console.error('❌ Ошибка загрузки из localStorage:', e);
-                athletesData = [];
-                exercisesData = [];
-                goalsData = [];
-                pendingChanges = [];
-                logHistory = [];
+                return false;
             }
         }
 
         function saveToLocalStorage() {
+            if (!hasStorageWriteLock) return false;
             try {
-                localStorage.setItem('athletesData', JSON.stringify(athletesData));
-                localStorage.setItem('exercisesData', JSON.stringify(exercisesData));
-                localStorage.setItem('goalsData', JSON.stringify(goalsData));
-                localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
                 localStorage.setItem('logHistory', JSON.stringify(logHistory));
                 localStorage.setItem('lastSaved', new Date().toISOString());
+                // Один атомарный commit: замер и событие отправки нельзя сохранить порознь.
+                localStorage.setItem('seasonStateV1', JSON.stringify({ athletesData, pendingChanges, exercisesData, goalsData }));
 
                 console.log('💾 Сохранено в localStorage:', {
                     athletes: athletesData.length,
@@ -2736,8 +2941,10 @@
                     pending: pendingChanges.length,
                     logs: logHistory.length
                 });
+                return true;
             } catch (e) {
                 console.error('❌ Ошибка сохранения в localStorage:', e);
+                return false;
             }
         }
 
@@ -3363,10 +3570,11 @@
 
         // Обновление индикатора несинхронизированных изменений
         function updatePendingIndicator() {
+            if (isSyncing) return;
             const button = document.getElementById('syncBtn');
             if (!button) return;
 
-            const athleteChanges = pendingChanges.filter(c => c.type === 'athlete').length;
+            const athleteChanges = pendingChanges.filter(c => c.type === 'athlete' || c.type === 'performance').length;
             const goalChanges = pendingChanges.filter(c => c.type === 'goal').length;
             const goalEditChanges = pendingChanges.filter(c => c.type === 'goal_edit').length;
             const totalChanges = pendingChanges.length;
@@ -3389,6 +3597,9 @@
 
         // Редактирование показателей
         function editRecords(id) {
+            refreshCurrentSeason();
+            if (!canEditPerformances(currentSeason.name)) return;
+            recordsEditingSeason = currentSeason.name;
             const athlete = athletesData.find(a => a.id == id);
             if (!athlete) return;
 
@@ -3420,7 +3631,7 @@
                     // Пытаемся получить значение из performance
                     let value = '';
                     if (performanceMap[month]) {
-                        value = performanceMap[month][fieldName] || '';
+                        value = performanceMap[month][fieldName] ?? '';
                     }
 
                     console.log(`${month} ${fieldName}:`, value);
@@ -3468,37 +3679,7 @@
             const lastName = nameParts.length > 1 ? nameParts[0] : '';
             const firstName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
 
-            // Build monthly performance records from performances table
-            const monthlyPerformance = MONTHS.map(month => ({
-                month: month,
-                pullUps: 0,
-                pushUps: 0,
-                dips: 0
-            }));
-
-            // Group performances by month
-            const records = { pullUps: {}, pushUps: {}, dips: {} };
-
-            // Filter performances for this athlete and map to monthly records
-            const athletePerformances = performances.filter(p => p.athlete_id === athlete.id);
-
-            athletePerformances.forEach(perf => {
-                const monthName = getMonthName(perf.recorded_at);
-                const fieldName = getExerciseFieldName(perf.exercises?.name || '');
-
-                if (monthName && fieldName) {
-                    // Update monthly performance
-                    const monthRecord = monthlyPerformance.find(m => m.month === monthName);
-                    if (monthRecord) {
-                        monthRecord[fieldName] = perf.value;
-                    }
-
-                    // Update records for max calculation
-                    records[fieldName][monthName] = perf.value;
-                }
-            });
-
-            return {
+            const result = {
                 id: athlete.id,
                 lastName: lastName,
                 firstName: firstName,
@@ -3511,11 +3692,12 @@
                 active: athlete.status === 'active' ? 'Да' : 'Нет',
                 status: athlete.status,
                 season: athlete.season || currentSeason?.name,
-                performance: monthlyPerformance,
-                records: records,
+                performanceHistory: performances.filter(row => row.athlete_id === athlete.id),
                 created: athlete.created_at,
                 updated: athlete.updated_at
             };
+            rebuildSeasonPerformance(result);
+            return result;
         }
 
         // Transform Supabase goal to PWA format
@@ -3541,6 +3723,11 @@
 
         // Sync with Supabase (NEW)
         async function syncWithSupabase() {
+            if (!hasStorageWriteLock) return;
+            if (!seasonDataReady || !saveToLocalStorage()) {
+                alert('Сначала сохраните локальную резервную копию: освободите место на устройстве и откройте приложение заново.');
+                return;
+            }
             const button = document.getElementById('syncBtn');
 
             // Check if SDK is still loading
@@ -3590,11 +3777,16 @@
             }
 
             // Prevent concurrent syncs
-            if (button.classList.contains('syncing')) {
+            if (isSyncing) {
                 console.log('⏳ Синхронизация уже идёт, пропускаем');
                 return;
             }
 
+            isSyncing = true;
+            recordsEditingSeason = null;
+            closeModal('recordsModal');
+            cancelJournalCellEdit();
+            refreshCurrentSeason();
             // Start syncing state
             button.classList.add('syncing');
             button.classList.remove('pending', 'success', 'error');
@@ -3641,15 +3833,20 @@
 
                 if (goalsError) throw goalsError;
 
-                // Fetch performances (for athlete monthly records)
-                const { data: performances, error: performancesError } = await supabaseClient
-                    .from('performances')
-                    .select(`
-                        *,
-                        exercises!inner(name, type)
-                    `);
-
-                if (performancesError) throw performancesError;
+                // Полная история: сервер ограничивает размер одного ответа.
+                const performances = [];
+                while (true) {
+                    if (!hasStorageWriteLock) throw new Error('Окно больше не может изменять данные');
+                    const { data: page, error } = await supabaseClient.from('performances')
+                        .select('*, exercises(name, type)')
+                        .order('id', { ascending: true })
+                        .range(performances.length, performances.length + 499);
+                    if (error) throw error;
+                    if (!page?.length) break;
+                    performances.push(...page);
+                }
+                refreshCurrentSeason();
+                if (!hasStorageWriteLock) throw new Error('Окно больше не может изменять данные');
 
                 // Step 3: Transform data to PWA format
                 console.log('🔄 Трансформация данных...');
@@ -3687,8 +3884,10 @@
                 ));
 
                 // Step 4: Save to localStorage
-                saveToLocalStorage();
+                if (!saveToLocalStorage()) throw new Error('Не удалось сохранить загруженную историю на устройстве');
                 calculateAllTimeRecords();
+                updateSeasonDataNotice();
+                renderJournalTable();
                 
                 // 🔍 DEBUG: Log data before render
                 console.log('🔍 DEBUG: athletesData перед renderAthletes():', athletesData.length);
@@ -3733,11 +3932,16 @@
                     button.classList.remove('error');
                     updatePendingIndicator();
                 }, 3000);
+            } finally {
+                isSyncing = false;
+                button.disabled = !hasStorageWriteLock || !seasonDataReady || !navigator.onLine;
+                updatePendingIndicator();
             }
         }
 
         // Sync pending changes to Supabase
         async function syncPendingChangesToSupabase() {
+            if (!hasStorageWriteLock) throw new Error('Это окно не может синхронизировать данные');
             const errors = [];
             const successfulChanges = [];
 
@@ -3746,8 +3950,22 @@
             console.log(`📊 Оптимизация очереди: ${pendingChanges.length} → ${coalescedChanges.length} изменений`);
 
             for (const change of coalescedChanges) {
+                if (!hasStorageWriteLock) throw new Error('Окно больше не может синхронизировать данные');
+                if (isLegacyPerformanceChange(change)) continue;
                 try {
-                    if (change.type === 'athlete') {
+                    if (change.type === 'performance') {
+                        const row = change.data;
+                        if (row.athlete_id !== change.athleteId || performanceSeason(row.recorded_at) !== change.season ||
+                            !row.id || !row.exercise_id || !Number.isSafeInteger(row.value) || row.value < 0) {
+                            throw new Error('Не удалось подтвердить дату или значение замера');
+                        }
+                        const { error } = await supabaseClient.from('performances').upsert({
+                            id: row.id, athlete_id: row.athlete_id, exercise_id: row.exercise_id,
+                            recorded_at: row.recorded_at, value: row.value
+                        }, { onConflict: 'id' });
+                        if (error) throw error;
+                        successfulChanges.push(change);
+                    } else if (change.type === 'athlete') {
                         // Update athlete record
                         console.log('📤 Обновление спортсмена в Supabase:', change.athleteName);
                         console.log('🔍 DEBUG change.data:', change.data);
@@ -3790,86 +4008,6 @@
 
                         if (athleteError) throw athleteError;
 
-                        // Only process performances if they exist in change.data
-                        if (change.data.performance && Array.isArray(change.data.performance)) {
-                            // Get exercise IDs for mapping
-                            const exerciseMap = {
-                                'pullUps': exercisesData.find(e => e.name === 'Подтягивания')?.id,
-                                'pushUps': exercisesData.find(e => e.name === 'Отжимания от пола')?.id,
-                                'dips': exercisesData.find(e => e.name === 'Отжимания от брусьев')?.id
-                            };
-
-                            // Delete old performances for this athlete (clean slate approach)
-                            const { error: deleteError } = await supabaseClient
-                                .from('performances')
-                                .delete()
-                                .eq('athlete_id', change.athleteId);
-
-                            if (deleteError) throw deleteError;
-
-                            // Insert new performances
-                            const performancesToInsert = [];
-
-                            change.data.performance.forEach((monthData, index) => {
-                            const month = MONTHS[index];
-
-                            // Calculate date for this month (current season)
-                            const monthIndex = MONTHS.indexOf(month);
-                            let year = currentSeason.startYear;
-                            let monthNumber = 9 + monthIndex; // Sept = 9
-
-                            if (monthNumber > 12) {
-                                monthNumber -= 12;
-                                year = currentSeason.endYear;
-                            }
-
-                            const recorded_at = `${year}-${String(monthNumber).padStart(2, '0')}-15`;
-
-                            // Add pull-ups performance
-                            if (monthData.pullUps && monthData.pullUps > 0 && exerciseMap.pullUps) {
-                                performancesToInsert.push({
-                                    athlete_id: change.athleteId,
-                                    exercise_id: exerciseMap.pullUps,
-                                    value: monthData.pullUps,
-                                    recorded_at: recorded_at,
-                                    notes: month
-                                });
-                            }
-
-                            // Add push-ups performance
-                            if (monthData.pushUps && monthData.pushUps > 0 && exerciseMap.pushUps) {
-                                performancesToInsert.push({
-                                    athlete_id: change.athleteId,
-                                    exercise_id: exerciseMap.pushUps,
-                                    value: monthData.pushUps,
-                                    recorded_at: recorded_at,
-                                    notes: month
-                                });
-                            }
-
-                            // Add dips performance
-                            if (monthData.dips && monthData.dips > 0 && exerciseMap.dips) {
-                                performancesToInsert.push({
-                                    athlete_id: change.athleteId,
-                                    exercise_id: exerciseMap.dips,
-                                    value: monthData.dips,
-                                    recorded_at: recorded_at,
-                                    notes: month
-                                });
-                            }
-                        });
-
-                            // Insert all performances in one batch
-                            if (performancesToInsert.length > 0) {
-                                const { error: insertError } = await supabaseClient
-                                    .from('performances')
-                                    .insert(performancesToInsert);
-
-                                if (insertError) throw insertError;
-                                console.log(`✅ Сохранено ${performancesToInsert.length} показателей`);
-                            }
-                        }
-
                         successfulChanges.push(change);
 
                     } else if (change.type === 'goal') {
@@ -3878,7 +4016,7 @@
 
                             const { error } = await supabaseClient
                                 .from('goals')
-                                .insert({
+                                .upsert({
                                     id: change.goalData.id,
                                     athlete_id: change.goalData.studentId,
                                     exercise_id: change.goalData.exerciseId,
@@ -3887,7 +4025,7 @@
                                     end_date: change.goalData.endDate,
                                     description: change.goalData.description,
                                     completed: false
-                                });
+                                }, { onConflict: 'id', ignoreDuplicates: true });
 
                             if (error) throw error;
                             successfulChanges.push(change);
@@ -3977,19 +4115,24 @@
                         });
                     }
                     errors.push(change);
+                    break; // Сохраняем порядок правок при ошибке или неизвестном результате запроса.
                 }
             }
 
             // Remove successful changes from queue
             if (successfulChanges.length > 0) {
+                const originalQueue = pendingChanges;
                 pendingChanges = pendingChanges.filter(c => !successfulChanges.includes(c));
-                saveToLocalStorage();
+                if (!saveToLocalStorage()) {
+                    pendingChanges = originalQueue;
+                    throw new Error('Не удалось сохранить очередь на устройстве. Освободите место и повторите синхронизацию.');
+                }
                 console.log(`✅ Синхронизировано ${successfulChanges.length} изменений в Supabase`);
             }
 
             if (errors.length > 0) {
                 console.warn(`⚠️ ${errors.length} изменений не удалось синхронизировать`);
-                throw new Error(`Failed to sync ${errors.length} changes`);
+                throw new Error(`Не удалось отправить замеры. Очередь сохранена; повторите синхронизацию.`);
             }
         }
 
@@ -4348,6 +4491,7 @@
 
             document.getElementById('recordsForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (!canEditPerformances(recordsEditingSeason)) return;
                 const id = document.getElementById('recordsAthleteId').value;
                 const athlete = athletesData.find(a => a.id == id);
                 if (!athlete) return;
@@ -4380,24 +4524,17 @@
 
                 console.log('🏆 Сохранение разрядов:', athlete.rank_start, '→', athlete.rank_end);
 
-                // Собираем performance
-                athlete.performance = MONTHS.map(month => ({
-                    month: month,
-                    pullUps: parseInt(document.getElementById(`pullUps-${month}`).value) || 0,
-                    pushUps: parseInt(document.getElementById(`pushUps-${month}`).value) || 0,
-                    dips: parseInt(document.getElementById(`dips-${month}`).value) || 0
-                }));
-
-                // Пересчитываем records
-                athlete.records = { pullUps: {}, pushUps: {}, dips: {} };
-                athlete.performance.forEach(p => {
-                    if (p.pullUps) athlete.records.pullUps[p.month] = p.pullUps;
-                    if (p.pushUps) athlete.records.pushUps[p.month] = p.pushUps;
-                    if (p.dips) athlete.records.dips[p.month] = p.dips;
-                });
-
-                // Пересчитываем all-time рекорды
-                calculateAllTimeRecords();
+                try {
+                    queuePerformanceValues(athlete, MONTHS.flatMap((month, monthIndex) =>
+                        ['pullUps', 'pushUps', 'dips'].map(field => {
+                            const input = document.getElementById(`${field}-${month}`).value.trim();
+                            return { monthIndex, field, value: input === '' ? null : Number(input) };
+                        })
+                    ), recordsEditingSeason);
+                } catch (error) {
+                    alert(error.message);
+                    return;
+                }
 
                 // Добавляем в очередь на синхронизацию
                 const studentData = {
@@ -4405,12 +4542,7 @@
                     group: athlete.group,
                     schedule: athlete.schedule,
                     rank_start: athlete.rank_start,
-                    rank_end: athlete.rank_end,
-                    performance: athlete.performance.map(p => ({
-                        pullUps: p.pullUps,
-                        pushUps: p.pushUps,
-                        dips: p.dips
-                    }))
+                    rank_end: athlete.rank_end
                 };
 
                 console.log('🔍 DEBUG studentData перед добавлением в pendingChanges:', studentData);
@@ -4425,7 +4557,10 @@
                 
                 console.log('🔍 DEBUG pendingChanges после добавления:', pendingChanges);
 
-                saveToLocalStorage();
+                if (!saveToLocalStorage()) {
+                    alert('Не удалось сохранить замеры на устройстве. Не закрывайте приложение; освободите место и повторите сохранение.');
+                    return;
+                }
                 renderAthletes();
                 closeModal('recordsModal');
                 updatePendingIndicator();
@@ -5206,7 +5341,6 @@
             athlete.group = groupName;
             
             // Сохранить в localStorage
-            localStorage.setItem('athletesData', JSON.stringify(athletesData));
             
             // Добавить в очередь синхронизации
             pendingChanges.push({
@@ -5217,7 +5351,10 @@
                 data: { group: groupName },
                 timestamp: new Date().toISOString()
             });
-            localStorage.setItem('pendingChanges', JSON.stringify(pendingChanges));
+            if (!saveToLocalStorage()) {
+                alert('Не удалось сохранить изменения на устройстве. Не закрывайте приложение; освободите место и повторите сохранение.');
+                return;
+            }
             
             console.log(`✅ Группа ${groupName} назначена спортсмену ${athlete.name}`);
             
@@ -5879,6 +6016,8 @@
         // === Cell Editing ===
 
         function startJournalCellEdit(athleteId, exerciseField) {
+            if (refreshCurrentSeason()) return;
+            if (!canEditPerformances(currentSeason.name)) return;
             // Отменить предыдущее редактирование
             if (journalEditingCell) {
                 cancelJournalCellEdit();
@@ -5895,7 +6034,7 @@
             const exName = JOURNAL_EXERCISES.find(e => e.field === exerciseField)?.fullLabel || exerciseField;
             console.log('📓 Редактирование: ' + athlete.lastName + ' ' + athlete.firstName + ' / ' + exName);
 
-            journalEditingCell = { athleteId, exerciseField };
+            journalEditingCell = { athleteId, exerciseField, monthIndex, season: currentSeason.name };
 
             // Найти ячейку и заменить на input
             const rows = document.querySelectorAll('#journal-tbody tr');
@@ -5916,7 +6055,7 @@
                     input.inputMode = 'numeric';
                     input.pattern = '[0-9]*';
                     input.min = '0';
-                    if (hasValue && currentVal > 0) input.value = currentVal;
+                    if (hasValue) input.value = currentVal;
                     input.style.cssText = 'width:100%;max-width:60px;background:#2a2d3a;color:#fff;border:1px solid #4c9eff;border-radius:6px;font-size:17px;text-align:center;padding:4px;min-height:36px;-webkit-appearance:none;outline:none';
 
                     input.addEventListener('keydown', (e) => {
@@ -5951,64 +6090,25 @@
         }
 
         function saveJournalCellValue(athleteId, exerciseField, rawValue) {
-            const athlete = athletesData.find(a => a.id === athleteId);
-            if (!athlete) return;
-
-            const parsed = parseInt(rawValue, 10);
-            if (isNaN(parsed) || parsed < 0) {
+            const edit = journalEditingCell;
+            if (!edit || edit.athleteId !== athleteId || edit.exerciseField !== exerciseField) return;
+            if (!canEditPerformances(edit.season)) {
                 cancelJournalCellEdit();
                 return;
             }
-
-            const monthIndex = getJournalMonthIndex();
-            const exName = JOURNAL_EXERCISES.find(e => e.field === exerciseField)?.fullLabel || exerciseField;
-
-            // Обновить in-memory performance
-            if (!athlete.performance) {
-                athlete.performance = MONTHS.map(month => ({ month, pullUps: 0, pushUps: 0, dips: 0 }));
+            const athlete = athletesData.find(a => a.id === athleteId);
+            if (!athlete || rawValue.trim() === '') return;
+            try {
+                queuePerformanceValues(athlete, [{ monthIndex: edit.monthIndex, field: exerciseField, value: Number(rawValue) }], edit.season);
+            } catch (error) {
+                alert(error.message);
+                return;
             }
-            athlete.performance[monthIndex][exerciseField] = parsed;
-
-            // Обновить records
-            if (!athlete.records) athlete.records = { pullUps: {}, pushUps: {}, dips: {} };
-            if (!athlete.records[exerciseField]) athlete.records[exerciseField] = {};
-            if (parsed > 0) {
-                athlete.records[exerciseField][MONTHS[monthIndex]] = parsed;
-            } else {
-                delete athlete.records[exerciseField][MONTHS[monthIndex]];
+            if (!saveToLocalStorage()) {
+                alert('Не удалось сохранить замер на устройстве. Не закрывайте приложение; освободите место и повторите сохранение.');
+                return;
             }
-
-            // Пересчитать all-time рекорды
-            calculateAllTimeRecords();
-
-            // pendingChanges (тот же формат что recordsForm)
-            const studentData = {
-                id: athlete.id,
-                group: athlete.group,
-                schedule: athlete.schedule,
-                rank_start: athlete.rank_start,
-                rank_end: athlete.rank_end,
-                performance: athlete.performance.map(p => ({
-                    pullUps: p.pullUps,
-                    pushUps: p.pushUps,
-                    dips: p.dips
-                }))
-            };
-
-            pendingChanges.push({
-                type: 'athlete',
-                athleteId: athlete.id,
-                athleteName: `${athlete.lastName} ${athlete.firstName}`,
-                data: studentData
-            });
-
-            saveToLocalStorage();
             updatePendingIndicator();
-
-            console.log('✅ Сохранено: ' + athlete.lastName + ' ' + athlete.firstName + ' / ' + exName + ' = ' + parsed);
-            console.log('⏳ Добавлено в очередь синхронизации');
-
-            // Сбросить состояние и перерисовать
             journalEditingCell = null;
             renderJournalTable();
         }
@@ -6046,13 +6146,15 @@
         setInterval(() => {
             const btn = document.getElementById('syncBtn');
             const wasDisabled = btn.disabled;
-            btn.disabled = !navigator.onLine;
+            btn.disabled = isSyncing || !seasonDataReady || !navigator.onLine;
 
             // Если только что подключились к интернету и есть несохраненные изменения
             if (wasDisabled && navigator.onLine && pendingChanges.length > 0) {
                 console.log('✅ Интернет подключен, есть несохраненные изменения');
             }
 
+            if (!seasonDataReady) return;
+            refreshCurrentSeason();
             updatePendingIndicator();
             updateSeasonIndicator();
         }, 5000);

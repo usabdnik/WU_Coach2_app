@@ -1,7 +1,7 @@
 // Service Worker для WU Coach PWA - Offline-First кэширование
 // Версия: 1.0.0
 
-const CACHE_NAME = 'wu-coach-v2';
+const CACHE_NAME = 'wu-coach-v4-seasons';
 const CACHE_URLS = [
     './',
     './index.html',
@@ -72,8 +72,12 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Суп.abase CDN - пытаемся загрузить с сети, fallback на кэш
-    if (url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('supabase.co')) {
+    // Данные API хранятся в localStorage приложения. Устаревший HTTP-кэш
+    // не должен подменять ошибку сети успешной загрузкой старых замеров.
+    if (request.method !== 'GET' || url.hostname.endsWith('.supabase.co')) return;
+
+    // Только SDK: сеть с fallback на кэш, без ответов рабочей базы.
+    if (url.hostname === 'cdn.jsdelivr.net') {
         event.respondWith(
             fetch(request)
                 .then((response) => {
